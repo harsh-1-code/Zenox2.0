@@ -1,3 +1,20 @@
+# Digi संरक्षक AI
+
+
+Team GLITCH 
+
+Ayush Kumar
+Nitish Singh
+Harsh Kumar
+
+
+
+
+
+
+
+
+
 # Is this a scam? — Scam Decision Assistant
 
 PS-1, Conversational Claude Impact Lab (Bhopal).
