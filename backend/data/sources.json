@@ -1,0 +1,47 @@
+[
+  {
+    "source_id": "SRC-1930",
+    "title": "National Cyber Crime Helpline 1930",
+    "publisher": "Indian Cyber Crime Coordination Centre (I4C), Ministry of Home Affairs",
+    "category": "incident_reporting",
+    "url": "https://cybercrime.gov.in/",
+    "last_verified": "TODO",
+    "status": "active"
+  },
+  {
+    "source_id": "SRC-NCRP",
+    "title": "National Cybercrime Reporting Portal",
+    "publisher": "Ministry of Home Affairs, Government of India",
+    "category": "incident_reporting",
+    "url": "https://cybercrime.gov.in/",
+    "last_verified": "TODO",
+    "status": "active"
+  },
+  {
+    "source_id": "SRC-RBI-ADVISORY",
+    "title": "RBI consumer awareness / Sachet portal",
+    "publisher": "Reserve Bank of India",
+    "category": "consumer_safety",
+    "url": "https://sachet.rbi.org.in/",
+    "last_verified": "TODO",
+    "status": "active"
+  },
+  {
+    "source_id": "SRC-RBI-DLA",
+    "title": "Digital lending apps of RBI-regulated entities",
+    "publisher": "Reserve Bank of India",
+    "category": "lending_reference",
+    "url": "https://www.rbi.org.in/",
+    "last_verified": "TODO",
+    "status": "placeholder"
+  },
+  {
+    "source_id": "SRC-PARTNER",
+    "title": "Partner-validated post-incident procedure",
+    "publisher": "TODO - cyber cell / bank fraud team / consumer-rights org",
+    "category": "operational_procedure",
+    "url": "",
+    "last_verified": "TODO",
+    "status": "pending"
+  }
+]

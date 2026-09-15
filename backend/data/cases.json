@@ -1,0 +1,68 @@
+{
+  "_note": "Synthetic/redacted cases only, per PS constraint. Target ~50 cases, roughly half genuine. Seed set below - expand before the eval run.",
+  "cases": [
+    {
+      "id": "scam-kyc-01",
+      "label": "scam",
+      "input_type": "text",
+      "text": "Dear Customer, your bank KYC has expired. Your account will be blocked today. Update immediately: http://kyc-update-verify.in/hdfc",
+      "expect_claim_type": "kyc_expiry"
+    },
+    {
+      "id": "scam-parcel-01",
+      "label": "scam",
+      "input_type": "text",
+      "text": "Your parcel is held at customs. Pay a clearance fee of Rs 45 within 12 hours to release it: bit.ly/parcel-clear",
+      "expect_claim_type": "parcel_fee"
+    },
+    {
+      "id": "scam-arrest-01",
+      "label": "scam",
+      "input_type": "call",
+      "text": "A man on a video call said he is from CBI, that a parcel in my name had drugs, and that I am under digital arrest. He says I must stay on the call and transfer money to a verification account.",
+      "expect_claim_type": "digital_arrest"
+    },
+    {
+      "id": "scam-job-01",
+      "label": "scam",
+      "input_type": "text",
+      "text": "Congratulations! You are selected for a work from home job, salary 35000/month. Pay Rs 1499 registration to confirm your seat.",
+      "expect_claim_type": "job_fee"
+    },
+    {
+      "id": "scam-invest-01",
+      "label": "scam",
+      "input_type": "text",
+      "text": "Join our VIP trading group. Members earned 180% this month. Limited seats. Deposit minimum 5000 to start.",
+      "expect_claim_type": "investment"
+    },
+    {
+      "id": "genuine-bank-01",
+      "label": "genuine",
+      "input_type": "text",
+      "text": "Rs 2,340.00 debited from A/c XX4412 on 12-09-25 to SWIGGY. Not you? Call 18002026161. -Axis Bank",
+      "expect_claim_type": null
+    },
+    {
+      "id": "genuine-otp-01",
+      "label": "genuine",
+      "input_type": "text",
+      "text": "123456 is your OTP for login. Valid for 10 minutes. Do not share with anyone. -SBI",
+      "expect_claim_type": null
+    },
+    {
+      "id": "genuine-courier-01",
+      "label": "genuine",
+      "input_type": "text",
+      "text": "Your Delhivery shipment 1234567890 is out for delivery today. Track in the app.",
+      "expect_claim_type": null
+    },
+    {
+      "id": "ambiguous-01",
+      "label": "ambiguous",
+      "input_type": "text",
+      "text": "Sir your electricity bill is pending, connection will be disconnected tonight. Please contact officer.",
+      "expect_claim_type": "utility_disconnection"
+    }
+  ]
+}

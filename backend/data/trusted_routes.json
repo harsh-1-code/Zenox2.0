@@ -1,0 +1,26 @@
+{
+  "en": {
+    "default": "Verify this independently. Contact the organisation using a number or app you already had - never the number or link in the message.",
+    "kyc_expiry": "Open your bank's official app, or call the number printed on your debit card or passbook. Banks do not complete KYC over a link.",
+    "parcel_fee": "Check the shipment on the courier's official app or website using your own order ID. Do not pay a fee from a message link.",
+    "digital_arrest": "No police, CBI or court conducts an arrest over a video call or demands money to settle a case. Disconnect and call 1930 or your local police station directly.",
+    "investment": "Check whether the platform is registered with SEBI or RBI before transferring anything. Screenshots of profits are trivially faked.",
+    "job_fee": "Verify the employer through their official website or HR contact. A genuine employer does not ask you to pay to get a job.",
+    "loan_app": "Check the app against the lender's RBI-regulated entity before installing or borrowing. Never grant an app access to your contacts or gallery.",
+    "utility_disconnection": "Check your bill status in the official electricity board app or call the number on your last paper bill.",
+    "subsidy": "Verify through the official scheme portal or your local office. Subsidies are never released against an advance payment.",
+    "family_emergency": "Call the family member back on the number you already have saved, before doing anything else."
+  },
+  "hi": {
+    "default": "इसकी पुष्टि खुद करें। संस्था से उसी नंबर या ऐप पर संपर्क करें जो पहले से आपके पास है — मैसेज में दिए नंबर या लिंक से कभी नहीं।",
+    "kyc_expiry": "अपने बैंक का आधिकारिक ऐप खोलें, या अपने डेबिट कार्ड/पासबुक पर छपे नंबर पर कॉल करें। बैंक कभी लिंक से KYC पूरा नहीं कराते।",
+    "parcel_fee": "कूरियर के आधिकारिक ऐप या वेबसाइट पर अपने ऑर्डर ID से शिपमेंट देखें। मैसेज के लिंक से कोई फीस न भरें।",
+    "digital_arrest": "कोई पुलिस, CBI या अदालत वीडियो कॉल पर गिरफ्तार नहीं करती और न ही केस निपटाने के पैसे मांगती है। कॉल काट दें और सीधे 1930 या अपने स्थानीय थाने में संपर्क करें।",
+    "investment": "पैसा भेजने से पहले देखें कि प्लेटफॉर्म SEBI या RBI में पंजीकृत है या नहीं। मुनाफे के स्क्रीनशॉट बनाना बहुत आसान है।",
+    "job_fee": "कंपनी की आधिकारिक वेबसाइट या HR से पुष्टि करें। असली नौकरी के लिए कोई पैसे नहीं मांगता।",
+    "loan_app": "इंस्टॉल या उधार लेने से पहले ऐप को RBI-पंजीकृत संस्था की सूची में जांचें। किसी ऐप को कॉन्टैक्ट या गैलरी की अनुमति कभी न दें।",
+    "utility_disconnection": "बिजली बोर्ड के आधिकारिक ऐप में बिल की स्थिति देखें, या अपने पिछले कागज़ी बिल पर छपे नंबर पर कॉल करें।",
+    "subsidy": "आधिकारिक योजना पोर्टल या स्थानीय कार्यालय से पुष्टि करें। सब्सिडी कभी एडवांस पेमेंट पर नहीं मिलती।",
+    "family_emergency": "कुछ भी करने से पहले उस परिवार के सदस्य को अपने सेव किए हुए नंबर पर वापस कॉल करें।"
+  }
+}

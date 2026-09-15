@@ -1,0 +1,10 @@
+{
+  "source": "RBI list of digital lending apps reported by regulated entities",
+  "source_url": "https://www.rbi.org.in/",
+  "last_updated": "TODO",
+  "_warning": "PLACEHOLDER DATA. Replace with the actual RBI-published list before the demo. Do not present these entries as real.",
+  "apps": [
+    {"app": "SAMPLE-A", "entity": "Sample Bank Ltd", "entity_type": "Bank"},
+    {"app": "SAMPLE-B", "entity": "Sample NBFC Pvt Ltd", "entity_type": "NBFC"}
+  ]
+}
