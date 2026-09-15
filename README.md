@@ -254,6 +254,62 @@ python scripts/import_rbi_dla.py ~/Downloads/dla_directory.xlsx
 
 ---
 
+# 🛣️ Next: real-time voice-clone detection on live calls
+
+> **Designed, not shipped.** Nothing below is in this build. It is the next problem we
+> intend to solve, and the architecture for it is worked out — we are listing it because
+> the design is real, not because the feature is.
+
+Today a call reaches the assistant as a *description* — the person tells us what the
+caller said. That is what PS-1 asks for, and a browser cannot reach telephony audio. But
+the fraud that is growing fastest in India is not a badly written SMS: it is a cloned
+voice. A caller who sounds exactly like your son, your manager, or your bank's relationship
+officer, asking for money.
+
+**What we would build**
+
+```
+SIM call → telephony audio → VAD → fast anti-spoof screen
+                                        │
+                              suspicious? → heavier confirmer
+                                        │
+                     temporal smoothing across several windows
+                                        │
+                        LOW / SUSPICIOUS / HIGH  +  uncertainty
+                                        │
+                    "This voice may be AI-generated. Call them
+                     back on a number you already have."
+```
+
+- **Two-stage detection.** A light always-on screen (RawNet2 / compact AASIST class) on
+  every analysis window, with a heavier confirmer (fine-tuned Wav2Vec2-XLS-R) only when
+  the first stage is unsure. Cheap enough to run continuously, accurate when it matters.
+- **Telephone-channel-aware training.** Studio-clean anti-spoof models collapse on a real
+  call. Training needs codec degradation, band-limiting, packet loss and Indian-accent
+  calibration, evaluated on held-out real call audio.
+- **Anti-spoof, not speaker verification.** A good clone *passes* speaker verification —
+  it is supposed to sound like the person. The question worth asking is not "is this them?"
+  but "was this speech synthesised?"
+- **Calibrated risk, warned inside a few seconds.** Not a sub-second verdict: several
+  windows have to agree before interrupting a call, or every noisy line becomes an alarm.
+
+**Why it is not in this build**
+
+Android does not give an ordinary app the live audio of a phone call, by design. Reaching
+it needs a privileged capture path — a Shizuku/ADB-backed service on a specific, frozen
+OS build — or, for production, an OEM system component or carrier IMS integration. That is
+a platform partnership, not a weekend of code, and a demo that depends on one handset
+staying in a debugging session is a demo that breaks on stage.
+
+So the engine we would build is deliberately **audio-source-agnostic**: it takes PCM
+frames and knows nothing about telephony. The capture adapter is a separate layer that can
+be swapped for an OEM or carrier feed without touching the detector. The assistant you can
+use today handles the same scam the way the platform currently allows — you describe the
+call, and it walks you through verifying the caller on a number you already had, which is
+the advice that actually defeats a clone.
+
+---
+
 # 🧱 Architecture
 
 ```

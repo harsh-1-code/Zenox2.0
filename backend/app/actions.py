@@ -84,35 +84,42 @@ def build(a: Assessment, lang: str = "en") -> list:
     # A genuine message gets no scare list. An uncertain one gets a short caution,
     # not the full four-line warning - that is what makes a false alarm feel like one.
     if a.risk_state in ("SUSPICIOUS", "HIGH_RISK"):
-        out += [Action(text=t, kind="do_not") for t in T["do_not"]]
+        out += [Action(text=t, kind="do_not", source_id="SRC-RBI-ADVISORY") for t in T["do_not"]]
     elif a.risk_state == "UNCERTAIN":
-        out += [Action(text=t, kind="do_not") for t in T["caution"]]
+        out += [Action(text=t, kind="do_not", source_id="SRC-RBI-ADVISORY") for t in T["caution"]]
 
     out.append(
         Action(
             text=routes.get(a.scam_dna.claim_type or "", routes["default"]),
             kind="verify",
             deadline_minutes=10,
+            source_id="SRC-RBI-ADVISORY",
         )
     )
 
     if a.user_state == "clicked_or_installed":
         out += [
-            Action(text=T["clicked"][0], kind="do_now", deadline_minutes=10),
-            Action(text=T["clicked"][1], kind="do_now", deadline_minutes=30),
+            Action(text=T["clicked"][0], kind="do_now", deadline_minutes=10,
+                   source_id="SRC-RBI-ADVISORY"),
+            Action(text=T["clicked"][1], kind="do_now", deadline_minutes=30,
+                   source_id="SRC-RBI-ADVISORY"),
         ]
     elif a.user_state == "credentials_shared":
         out += [
-            Action(text=T["creds"][0], kind="do_now", deadline_minutes=10),
-            Action(text=T["creds"][1], kind="do_now", deadline_minutes=30),
+            Action(text=T["creds"][0], kind="do_now", deadline_minutes=10,
+                   source_id="SRC-RBI-ADVISORY"),
+            Action(text=T["creds"][1], kind="do_now", deadline_minutes=30,
+                   source_id="SRC-RBI-ADVISORY"),
         ]
     elif a.user_state == "money_sent":
         m = T["money"]
         out = [
-            Action(text=m[0], kind="do_now", deadline_minutes=60),
-            Action(text=m[1], kind="do_now", deadline_minutes=60),
-            Action(text=m[2], kind="do_now", deadline_minutes=60),
-            Action(text=m[3], kind="preserve"),
+            # Ordered by what recovers money: the bank can freeze, 1930 can trace, the
+            # portal creates the record. Sources are the authorities that publish each.
+            Action(text=m[0], kind="do_now", deadline_minutes=10, source_id="SRC-RBI-ADVISORY"),
+            Action(text=m[1], kind="do_now", deadline_minutes=60, source_id="SRC-1930"),
+            Action(text=m[2], kind="do_now", deadline_minutes=60, source_id="SRC-NCRP"),
+            Action(text=m[3], kind="preserve", source_id="SRC-NCRP"),
         ] + out
 
     return out

@@ -14,7 +14,7 @@ from typing import Optional
 from anthropic import Anthropic
 from pydantic import ValidationError
 
-from . import actions, guards, lending, prompt, redact, session
+from . import actions, guards, lending, localize, prompt, redact, session
 from .config import ANTHROPIC_API_KEY, ANTHROPIC_MODEL, DATA, MAX_TOKENS
 from .schemas import Assessment, ScamDNA, Verdict
 
@@ -144,7 +144,9 @@ def assess(
     return Verdict(
         **a.model_dump(),
         session_id=sid,
-        actions=actions.build(a, lang),
+        # Built deterministically, then said in the person's language if it is one we
+        # did not hand-write. The steps never change - only the words.
+        actions=localize.actions_into(actions.build(a, lang), a.reply_lang),
         sources=registry + web[:6],
         researched=bool(research),
         # An app-name intake always gets the reference-list result alongside the

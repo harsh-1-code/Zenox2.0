@@ -31,6 +31,9 @@ class Evidence(BaseModel):
 class Assessment(BaseModel):
     """Exactly what Claude must return. Validated before anything else runs."""
 
+    # Declared before any prose so the model commits to a language before writing it.
+    user_lang: str = "en-IN"
+    reply_lang: str = "en-IN"
     scam_dna: ScamDNA
     scam_evidence: list[Evidence] = []
     legitimacy_evidence: list[Evidence] = []
@@ -47,6 +50,9 @@ class Action(BaseModel):
     text: str
     kind: Literal["do_not", "do_now", "verify", "preserve"]
     deadline_minutes: Optional[int] = None
+    # Resolves against sources.json. The PS requires the source of every rule or fact,
+    # and an action plan is the most consequential rule the product issues.
+    source_id: Optional[str] = None
 
 
 class Verdict(Assessment):

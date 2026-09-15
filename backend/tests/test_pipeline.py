@@ -68,11 +68,27 @@ def test_upi_handle_survives_for_claude_but_not_for_logs():
 
 # --- actions ----------------------------------------------------------------
 
-def test_money_sent_puts_bank_call_first_with_golden_hour():
+def test_money_sent_puts_the_bank_call_inside_ten_minutes():
+    """The bank is the only party that can freeze a transfer, so it leads and it is the
+    tightest deadline. 1930 and the portal follow inside the hour."""
     plan = actions.build(_a(user_state="money_sent"))
-    assert plan[0].kind == "do_now" and plan[0].deadline_minutes == 60
-    assert any("1930" in a.text for a in plan)
+    assert plan[0].kind == "do_now" and plan[0].deadline_minutes == 10
+    nineteen_thirty = next(a for a in plan if "1930" in a.text)
+    assert nineteen_thirty.deadline_minutes == 60
     assert any(a.kind == "preserve" for a in plan)
+
+
+def test_every_action_names_a_real_source():
+    """PS: cite the source of every rule or fact. An action plan is the most
+    consequential rule the product issues, so none of them may be unsourced."""
+    import json
+    from app.config import DATA
+
+    known = {s["source_id"] for s in json.loads((DATA / "sources.json").read_text())}
+    for state in ("nothing_done", "clicked_or_installed", "credentials_shared", "money_sent"):
+        for act in actions.build(_a(user_state=state)):
+            assert act.source_id, f"unsourced action in {state}: {act.text[:40]}"
+            assert act.source_id in known, f"invented source {act.source_id}"
 
 
 def test_legit_verdict_has_no_do_not_list():
