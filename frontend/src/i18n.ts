@@ -41,6 +41,7 @@ const S = {
     copy: 'Copy',
     copied: 'Copied',
     print: 'Print',
+    install: 'Install app',
     reset: 'Clear session',
     cleared: 'Session deleted. Nothing was stored.',
     risk: {
@@ -88,6 +89,7 @@ const S = {
     copy: 'कॉपी करें',
     copied: 'कॉपी हो गया',
     print: 'प्रिंट करें',
+    install: 'ऐप इंस्टॉल करें',
     reset: 'सेशन मिटाएं',
     cleared: 'सेशन मिटा दिया गया। कुछ भी सेव नहीं हुआ।',
     risk: {

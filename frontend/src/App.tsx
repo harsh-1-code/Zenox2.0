@@ -23,6 +23,17 @@ export default function App() {
   const [cleared, setCleared] = useState(false)
   const L = t(lang)
   const shared = useRef(false)
+  const [installer, setInstaller] = useState<any>(null)
+
+  useEffect(() => {
+    const onPrompt = (e: Event) => {
+      e.preventDefault()
+      setInstaller(e)
+    }
+    window.addEventListener('beforeinstallprompt', onPrompt)
+    window.addEventListener('appinstalled', () => setInstaller(null))
+    return () => window.removeEventListener('beforeinstallprompt', onPrompt)
+  }, [])
 
   // PWA share target: WhatsApp/SMS "Share -> Scam Check" lands here as ?text=...
   // Assess it straight away - the person shared it because they want an answer now.
@@ -81,6 +92,18 @@ export default function App() {
           <p className="sub">{L.subtitle}</p>
         </div>
         <div className="head-right">
+          {installer && (
+            <button
+              className="install"
+              onClick={async () => {
+                installer.prompt()
+                await installer.userChoice
+                setInstaller(null)
+              }}
+            >
+              {L.install}
+            </button>
+          )}
           <button className="ghost" onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}>
             {lang === 'en' ? 'हिन्दी' : 'English'}
           </button>
