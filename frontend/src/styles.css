@@ -644,3 +644,10 @@ footer { color: var(--muted); font-size: 11.5px; margin-top: 22px; border-top: 1
   border: 1px solid var(--line); background: #fff;
 }
 .stt-pick button.on { background: var(--sky); border-color: var(--sky-dark); color: #fff; }
+
+/* An explicit Stop, so interrupting never depends on knowing the orb is tappable. */
+.stop-btn {
+  margin-top: 12px; padding: 9px 22px; border-radius: 999px;
+  background: var(--text); color: #fff; border: none; font-weight: 600; font-size: 14px;
+}
+.stop-btn:hover { background: #1d3050; }

@@ -44,10 +44,37 @@ if (!native && typeof speechSynthesis !== 'undefined') {
   speechSynthesis.onvoiceschanged = load
 }
 
-/** `tag` is a BCP-47 tag from the model, not the UI toggle - the reply may be in any language. */
+/**
+ * Rough upper bound on how long a reply should take to say, used as a safety timeout.
+ * Indic scripts are slower per character than Latin, so this is generous on purpose.
+ */
+function speechBudgetMs(text: string): number {
+  return Math.min(60_000, 3_000 + text.length * 110)
+}
+
+/**
+ * `tag` is a BCP-47 tag from the model, not the UI toggle - the reply may be in any
+ * language.
+ *
+ * Resolves when speech finishes **or** when the budget expires. The native engine does
+ * not always fire its completion callback; when it did not, the caller sat in the
+ * "speaking" state forever and the hands-free loop never listened again.
+ */
 export async function speak(text: string, tag: string): Promise<void> {
   if (!text) return
   const lang = voiceFor(tag)
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const budget = new Promise<void>((done) => {
+    timer = setTimeout(done, speechBudgetMs(text))
+  })
+  try {
+    await Promise.race([speakNow(text, lang), budget])
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+async function speakNow(text: string, lang: string): Promise<void> {
   try {
     if (native) {
       await TextToSpeech.stop().catch(() => {})

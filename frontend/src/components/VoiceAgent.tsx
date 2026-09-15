@@ -220,6 +220,12 @@ export default function VoiceAgent({
 
         <div className="vmode-status" aria-live="polite">{status}</div>
 
+        {(phase === 'speaking' || phase === 'listening') && (
+          <button className="stop-btn" onClick={stopAll}>
+            {L.stopNow}
+          </button>
+        )}
+
         <div className="stt-pick" role="group" aria-label={L.speakIn}>
           <span>{L.speakIn}</span>
           <button className={sttLang === 'hi' ? 'on' : ''} onClick={() => setSttLang('hi')}>
