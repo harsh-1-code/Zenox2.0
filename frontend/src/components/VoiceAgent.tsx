@@ -1,17 +1,22 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { assistant } from '../api'
 import { t } from '../i18n'
 import type { AssistantAction, Lang } from '../types'
 import * as voice from '../voice'
-import { Mic, Sparkle, Stop, X } from './Icons'
+import { Keyboard, Mic, MicOff, Sparkle, X } from './Icons'
 
 type Turn = { role: 'user' | 'assistant'; text: string }
+type Phase = 'idle' | 'listening' | 'thinking' | 'speaking'
 
 /**
- * The in-app guide. Tap, speak, hear an answer, and it can drive the app for you.
+ * Hands-free voice mode.
  *
- * Typing always works. Speech is an enhancement layered on top - if the device has no
- * recogniser, or the permission is refused, the panel stays fully usable.
+ * One continuous conversation: it listens, answers aloud, then listens again without
+ * anyone tapping. Tap the orb at any point to interrupt — barge-in matters more than
+ * animation, because a person mid-panic should never have to wait out a sentence.
+ *
+ * Typing stays available underneath. Speech is an enhancement; a device without a
+ * recogniser still gets the whole assistant.
  */
 export default function VoiceAgent({
   lang,
@@ -23,150 +28,225 @@ export default function VoiceAgent({
   onAction: (a: AssistantAction, text?: string | null) => void
 }) {
   const [open, setOpen] = useState(false)
+  const [phase, setPhase] = useState<Phase>('idle')
   const [turns, setTurns] = useState<Turn[]>([])
-  const [listening, setListening] = useState(false)
-  const [thinking, setThinking] = useState(false)
-  const [speaking, setSpeaking] = useState(false)
   const [hasMic, setHasMic] = useState(false)
+  const [handsFree, setHandsFree] = useState(false)
   const [typed, setTyped] = useState('')
+  const [muted, setMuted] = useState(false)
+  const [keyboard, setKeyboard] = useState(false)
   const L = t(lang)
-  const scroller = useRef<HTMLDivElement | null>(null)
+
+  // A ref, not state: the async loop below must see the live value, not a stale closure.
+  const running = useRef(false)
+  const turnsRef = useRef<Turn[]>([])
+  turnsRef.current = turns
 
   useEffect(() => {
     voice.micAvailable().then(setHasMic)
   }, [])
 
-  useEffect(() => {
-    scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: 'smooth' })
-  }, [turns, thinking])
+  const stopAll = useCallback(async () => {
+    running.current = false
+    setHandsFree(false)
+    await voice.stopSpeaking()
+    await voice.stopListening()
+    setPhase('idle')
+  }, [])
 
-  // Leaving the panel must never leave a voice talking to an empty room.
   useEffect(() => {
-    if (!open) {
-      voice.stopSpeaking()
-      voice.stopListening()
-      setSpeaking(false)
-      setListening(false)
-    }
-  }, [open])
+    if (!open) stopAll()
+  }, [open, stopAll])
 
-  async function send(text: string) {
-    if (!text.trim()) return
-    const history = turns.map((x) => ({ role: x.role, text: x.text }))
-    setTurns((t) => [...t, { role: 'user', text }])
-    setTyped('')
-    setThinking(true)
-    try {
-      const r = await assistant(text, lang, sessionId, history)
-      setTurns((t) => [...t, { role: 'assistant', text: r.say }])
-      setThinking(false)
-      setSpeaking(true)
-      await voice.speak(r.say, lang)
-      setSpeaking(false)
-      if (r.action !== 'none') onAction(r.action, r.check_text)
-      if (r.action === 'run_check') setOpen(false)
-    } catch {
-      setThinking(false)
-      setTurns((t) => [...t, { role: 'assistant', text: L.voiceError }])
+  /** One exchange. Returns the reply so the loop can decide whether to continue. */
+  const exchange = useCallback(
+    async (text: string) => {
+      setTurns((t) => [...t, { role: 'user', text }])
+      setPhase('thinking')
+      const history = turnsRef.current.map((x) => ({ role: x.role, text: x.text }))
+
+      let reply
+      try {
+        reply = await assistant(text, lang, sessionId, history)
+      } catch {
+        setTurns((t) => [...t, { role: 'assistant', text: L.voiceError }])
+        setPhase('idle')
+        return null
+      }
+
+      setTurns((t) => [...t, { role: 'assistant', text: reply.say }])
+      setPhase('speaking')
+      await voice.speak(reply.say, lang)
+      setPhase('idle')
+
+      if (reply.action !== 'none') onAction(reply.action, reply.check_text)
+      return reply
+    },
+    [lang, sessionId, onAction, L.voiceError],
+  )
+
+  /** Listen -> answer -> listen again, until interrupted or the check is running. */
+  const loop = useCallback(async () => {
+    while (running.current) {
+      setPhase('listening')
+      const heard = await voice.listen(lang)
+      if (!running.current) break
+      if (!heard) {
+        setPhase('idle')
+        running.current = false
+        setHandsFree(false)
+        break
+      }
+      const reply = await exchange(heard)
+      if (!running.current) break
+      // Once the check is running, the answer is on the main screen, not in here.
+      if (reply?.action === 'run_check') {
+        running.current = false
+        setHandsFree(false)
+        setOpen(false)
+        break
+      }
     }
+    setPhase('idle')
+  }, [lang, exchange])
+
+  async function tapOrb() {
+    if (muted) return
+    if (phase === 'speaking' || phase === 'listening') return stopAll()
+    if (!(await voice.requestMic())) {
+      setHasMic(false)
+      setTurns((t) => [...t, { role: 'assistant', text: L.micDenied }])
+      return
+    }
+    running.current = true
+    setHandsFree(true)
+    loop()
   }
 
-  async function mic() {
-    if (listening) {
-      await voice.stopListening()
-      setListening(false)
-      return
-    }
-    if (!(await voice.requestMic())) {
-      setTurns((t) => [...t, { role: 'assistant', text: L.micDenied }])
-      setHasMic(false)
-      return
-    }
-    setListening(true)
-    const heard = await voice.listen(lang)
-    setListening(false)
-    if (heard) send(heard)
+  async function sendTyped() {
+    if (!typed.trim()) return
+    const text = typed
+    setTyped('')
+    const reply = await exchange(text)
+    if (reply?.action === 'run_check') setOpen(false)
   }
 
   if (!open)
     return (
       <button className="fab" onClick={() => setOpen(true)} aria-label={L.voiceOpen}>
-        <Sparkle size={22} />
+        <span className="fab-orb orb idle" aria-hidden="true">
+          <span className="orb-blob b1" />
+          <span className="orb-blob b2" />
+          <span className="orb-blob b3" />
+          <span className="orb-blob b4" />
+        </span>
         <span>{L.voiceFab}</span>
       </button>
     )
 
+  const last = [...turns].reverse().find((x) => x.role === 'assistant')
+  const lastUser = [...turns].reverse().find((x) => x.role === 'user')
+  const status =
+    muted || !hasMic ? L.muted
+    : phase === 'listening' ? L.listening
+    : phase === 'thinking' ? L.thinking
+    : phase === 'speaking' ? L.speaking
+    : handsFree ? L.voiceIdle
+    : L.tapToSpeak
+  const orbPhase = muted || !hasMic ? 'muted' : phase
+
   return (
-    <div className="voice-sheet" role="dialog" aria-label={L.voiceOpen}>
-      <div className="voice-head">
-        <span className="q-avatar" style={{ color: '#fff' }}>
-          <Sparkle size={15} />
-        </span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <b>{L.voiceName}</b>
-          <i>
-            {listening ? L.listening : thinking ? L.thinking : speaking ? L.speaking : L.voiceIdle}
-          </i>
+    <div className="vmode" role="dialog" aria-label={L.voiceOpen}>
+      <div className="vmode-top">
+        <div className="vmode-name">
+          <Sparkle size={15} /> {L.voiceName}
         </div>
-        {speaking && (
-          <button
-            className="ghost"
-            onClick={() => {
-              voice.stopSpeaking()
-              setSpeaking(false)
-            }}
-          >
-            <Stop size={14} />
-          </button>
-        )}
         <button className="ghost" onClick={() => setOpen(false)} aria-label="Close">
-          <X size={16} />
+          <X size={17} />
         </button>
       </div>
 
-      <div className="voice-body" ref={scroller}>
-        {turns.length === 0 && (
-          <div className="voice-hint">
-            <p>{L.voiceIntro}</p>
-            {L.voiceExamples.map((ex) => (
-              <button key={ex} className="chip" onClick={() => send(ex)}>
-                {ex}
-              </button>
-            ))}
-          </div>
-        )}
-        {turns.map((x, i) => (
-          <div key={i} className={`bubble ${x.role}`}>
-            {x.text}
-          </div>
-        ))}
-        {thinking && (
-          <div className="bubble assistant pending">
-            <span className="dot" />
-            <span className="dot" />
-            <span className="dot" />
-          </div>
-        )}
+      <div className="vmode-stage">
+        <div className="vmode-controls">
+          <button
+            className={`side-btn ${muted ? 'muted' : ''}`}
+            onClick={() => {
+              setMuted((m) => !m)
+              if (!muted) stopAll()
+            }}
+            aria-pressed={muted}
+            aria-label={muted ? L.unmute : L.mute}
+            disabled={!hasMic}
+          >
+            {muted || !hasMic ? <MicOff size={20} /> : <Mic size={20} />}
+          </button>
+
+          <button
+            className={`orb ${orbPhase}`}
+            onClick={tapOrb}
+            aria-label={phase === 'idle' ? L.tapToSpeak : L.stopLabel}
+            disabled={phase === 'thinking' || muted || !hasMic}
+          >
+            <span className="orb-blob b1" />
+            <span className="orb-blob b2" />
+            <span className="orb-blob b3" />
+            <span className="orb-blob b4" />
+            <span className="orb-core">
+              {orbPhase === 'muted' && <MicOff size={26} />}
+              {orbPhase === 'idle' && <Mic size={26} />}
+              {orbPhase === 'listening' && (
+                <span className="bars">
+                  <i /><i /><i /><i /><i />
+                </span>
+              )}
+              {orbPhase === 'thinking' && <span className="orb-spin" />}
+              {orbPhase === 'speaking' && (
+                <span className="wave">
+                  <i /><i /><i /><i /><i /><i /><i />
+                </span>
+              )}
+            </span>
+          </button>
+
+          <button
+            className={`side-btn ${keyboard ? 'active' : ''}`}
+            onClick={() => setKeyboard((k) => !k)}
+            aria-pressed={keyboard}
+            aria-label={L.typeInstead}
+          >
+            <Keyboard size={20} />
+          </button>
+        </div>
+
+        <div className="vmode-status" aria-live="polite">{status}</div>
+
+        <div className="vmode-transcript">
+          {lastUser && phase !== 'listening' && <p className="said">&ldquo;{lastUser.text}&rdquo;</p>}
+          {last && <p className="reply">{last.text}</p>}
+          {turns.length === 0 && (
+            <>
+              <p className="reply">{L.voiceIntro}</p>
+              <div className="chips" style={{ justifyContent: 'center' }}>
+                {L.voiceExamples.map((ex) => (
+                  <button key={ex} className="chip" onClick={() => exchange(ex)}>
+                    {ex}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
-      <div className="voice-foot">
-        {hasMic && (
-          <button
-            className={`mic ${listening ? 'on' : ''}`}
-            onClick={mic}
-            aria-label={listening ? L.listening : L.tapToSpeak}
-          >
-            <Mic size={20} />
-          </button>
-        )}
+      <div className={`vmode-foot ${keyboard || !hasMic ? '' : 'hidden'}`}>
         <input
           value={typed}
           onChange={(e) => setTyped(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && send(typed)}
+          onKeyDown={(e) => e.key === 'Enter' && sendTyped()}
           placeholder={hasMic ? L.voicePlaceholder : L.voicePlaceholderNoMic}
           aria-label={L.voicePlaceholder}
         />
-        <button className="primary" disabled={!typed.trim() || thinking} onClick={() => send(typed)}>
+        <button className="primary" disabled={!typed.trim() || phase === 'thinking'} onClick={sendTyped}>
           {L.send}
         </button>
       </div>

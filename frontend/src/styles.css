@@ -443,74 +443,169 @@ footer { color: var(--muted); font-size: 11.5px; margin-top: 22px; border-top: 1
   .helpdesk { display: block !important; border: none; box-shadow: none; }
 }
 
-/* ---------- voice guide ---------- */
+/* ---------- voice guide ----------------------------------------------------
+   A bottom panel, not a full screen: the verdict behind it stays visible while
+   you talk. Mic | Orb | Keyboard across the middle, one status line underneath.
+   The orb is CSS - three blurred gradient blobs counter-rotating - rather than a
+   Lottie file, so there is no animation dependency and nothing extra to load on a
+   low-end phone. prefers-reduced-motion stops all of it. */
+
 .fab {
   position: fixed; z-index: 90;
   right: 16px; bottom: calc(18px + env(safe-area-inset-bottom));
   display: flex; align-items: center; gap: 9px;
   background: var(--sky); border: 1px solid var(--sky-dark); color: #fff;
   border-radius: 999px; padding: 13px 20px; font-weight: 650; font-size: 15px;
-  box-shadow: 0 6px 22px rgba(43, 127, 255, 0.4);
+  box-shadow: 0 6px 22px rgba(43, 127, 255, 0.42);
 }
-.fab:hover { background: #3d8cff; box-shadow: 0 8px 28px rgba(43, 127, 255, 0.5); }
+.fab:hover { background: #3d8cff; box-shadow: 0 8px 30px rgba(43, 127, 255, 0.5); }
 
-.voice-sheet {
+.vmode {
   position: fixed; z-index: 95;
-  right: 16px; bottom: calc(16px + env(safe-area-inset-bottom));
-  width: min(420px, calc(100vw - 32px));
-  max-height: min(70vh, 620px);
-  display: flex; flex-direction: column;
-  background: var(--card); border: 1px solid var(--line); border-radius: 18px;
-  box-shadow: 0 12px 44px rgba(13, 27, 47, 0.22);
-  overflow: hidden;
-  animation: rise 0.24s var(--ease) both;
+  left: 0; right: 0; bottom: 0;
+  background: var(--card);
+  border-top: 1px solid var(--line);
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -10px 46px rgba(13, 27, 47, 0.18);
+  padding-bottom: env(safe-area-inset-bottom);
+  animation: sheet 0.26s var(--ease) both;
+  max-height: 88vh; display: flex; flex-direction: column;
 }
-.voice-head {
-  display: flex; align-items: center; gap: 10px;
-  padding: 12px 13px; border-bottom: 1px solid var(--line);
-  background: linear-gradient(180deg, var(--sky-tint) 0%, #fff 100%);
+@keyframes sheet { from { transform: translateY(100%); } to { transform: none; } }
+
+.vmode-top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px 4px;
 }
-.voice-head b { display: block; font-size: 14.5px; line-height: 1.25; }
-.voice-head i { display: block; font-style: normal; font-size: 11.5px; color: var(--muted); }
-.voice-head button { padding: 7px 10px; min-height: 36px; }
-
-.voice-body { flex: 1; overflow-y: auto; padding: 14px 13px; display: flex; flex-direction: column; gap: 9px; }
-.voice-hint { color: var(--muted); font-size: 13.5px; }
-.voice-hint p { margin: 0 0 10px; }
-.voice-hint .chip { margin: 0 6px 6px 0; }
-
-.bubble {
-  max-width: 86%; padding: 10px 13px; border-radius: 14px;
-  font-size: 14.5px; line-height: 1.55; white-space: pre-wrap;
+.vmode-name {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 13px; font-weight: 700; color: var(--sky-dark);
 }
-.bubble.user { align-self: flex-end; background: var(--sky); color: #fff; border-bottom-right-radius: 5px; }
-.bubble.assistant { align-self: flex-start; background: #f1f5fa; border: 1px solid var(--line); border-bottom-left-radius: 5px; }
-.bubble.pending { display: flex; gap: 5px; align-items: center; padding: 14px 15px; }
-.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: blink 1.2s infinite; }
-.dot:nth-child(2) { animation-delay: 0.2s; }
-.dot:nth-child(3) { animation-delay: 0.4s; }
-@keyframes blink { 0%, 60%, 100% { opacity: 0.25; } 30% { opacity: 1; } }
+.vmode-top .ghost { padding: 7px 10px; min-height: 36px; }
 
-.voice-foot { display: flex; gap: 8px; align-items: center; padding: 11px 13px; border-top: 1px solid var(--line); }
-.voice-foot input { flex: 1; border-radius: 999px; padding: 10px 15px; }
-.voice-foot .primary { margin-left: 0; padding: 10px 15px; border-radius: 999px; }
-.mic {
-  width: 44px; height: 44px; flex-shrink: 0; padding: 0;
+.vmode-stage { padding: 6px 16px 14px; text-align: center; overflow-y: auto; }
+
+/* --- controls row: mic | orb | keyboard --- */
+.vmode-controls {
+  display: flex; align-items: center; justify-content: center; gap: 26px;
+  margin: 6px 0 12px;
+}
+.side-btn {
+  width: 48px; height: 48px; padding: 0; flex-shrink: 0;
   border-radius: 50%; display: grid; place-items: center;
-  border: 1px solid var(--line-strong); background: #fff; color: var(--sky-dark);
+  border: 1px solid var(--line-strong); background: #fff; color: var(--text2);
 }
-.mic:hover { border-color: var(--sky); background: var(--sky-tint); }
-.mic.on {
-  background: var(--risk); border-color: var(--risk); color: #fff;
-  animation: pulse 1.4s ease-in-out infinite;
+.side-btn:hover { border-color: var(--sky); color: var(--sky-dark); background: var(--sky-tint); }
+.side-btn.active { background: var(--sky); border-color: var(--sky-dark); color: #fff; }
+.side-btn.muted { background: #f1f5fa; color: var(--muted); }
+
+/* --- the orb ---------------------------------------------------------------
+   A Siri-style bloom: four heavily blurred colour lobes drifting around a white
+   core, not a ring. Pure CSS - no Lottie, no canvas, nothing extra to download
+   on a cheap phone, and prefers-reduced-motion switches it all off. */
+.orb {
+  position: relative; width: 128px; height: 128px; flex-shrink: 0;
+  border: none; background: none; padding: 0; border-radius: 50%;
+  display: grid; place-items: center; cursor: pointer;
+  transition: transform 0.25s var(--ease), filter 0.35s var(--ease);
 }
-@keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(214, 69, 69, 0.45); }
-  50% { box-shadow: 0 0 0 9px rgba(214, 69, 69, 0); }
+.orb:active { transform: scale(0.96); }
+.orb:disabled { cursor: default; }
+
+.orb-blob {
+  position: absolute; width: 62%; height: 62%; border-radius: 50%;
+  filter: blur(15px);
+  will-change: transform;
+  opacity: 0.95;
+}
+.b1 { background: radial-gradient(circle, #ff3d5e 0%, #ff3d5e 26%, rgba(255,61,94,0) 72%); top: 4%;  left: 12%; animation: drift1 6.5s ease-in-out infinite; }
+.b2 { background: radial-gradient(circle, #1a6bff 0%, #1a6bff 26%, rgba(26,107,255,0) 72%); top: 28%; left: 0%;  animation: drift2 7.5s ease-in-out infinite; }
+.b3 { background: radial-gradient(circle, #06c27a 0%, #06c27a 26%, rgba(6,194,122,0) 72%); top: 32%; left: 34%; animation: drift3 8.5s ease-in-out infinite; }
+.b4 { background: radial-gradient(circle, #ffa617 0%, #ffa617 26%, rgba(255,166,23,0) 72%); top: 2%;  left: 32%; animation: drift4 9.5s ease-in-out infinite; }
+
+@keyframes drift1 { 0%,100% { transform: translate(0,0) scale(1) }    33% { transform: translate(14%,10%) scale(1.14) }  66% { transform: translate(-8%,14%) scale(.92) } }
+@keyframes drift2 { 0%,100% { transform: translate(0,0) scale(1) }    33% { transform: translate(16%,-12%) scale(.9) }   66% { transform: translate(10%,12%) scale(1.16) } }
+@keyframes drift3 { 0%,100% { transform: translate(0,0) scale(1) }    33% { transform: translate(-14%,-10%) scale(1.12) } 66% { transform: translate(6%,-14%) scale(.94) } }
+@keyframes drift4 { 0%,100% { transform: translate(0,0) scale(1) }    33% { transform: translate(-10%,16%) scale(.94) }  66% { transform: translate(-16%,4%) scale(1.1) } }
+
+/* white bloom at the centre, the thing that makes it read as Siri rather than a blob */
+.orb::after {
+  content: ''; position: absolute; inset: 33%;
+  border-radius: 50%; background: #fff; filter: blur(11px); opacity: 0.55;
+  pointer-events: none;
 }
 
-@media (max-width: 620px) {
-  .voice-sheet { right: 10px; left: 10px; width: auto; max-height: 76vh; border-radius: 16px; }
-  .fab { right: 12px; padding: 12px 18px; }
-  .voice-foot .primary { width: auto; }
+.orb-core {
+  position: relative; z-index: 3;
+  display: grid; place-items: center; color: var(--sky-dark);
+  transition: opacity 0.25s var(--ease);
+}
+
+.orb.idle .orb-blob { animation-duration: 12s, 14s, 16s, 18s; }
+.orb.idle { filter: saturate(0.95); }
+
+.orb.listening { transform: scale(1.08); }
+.orb.listening .orb-blob { filter: blur(15px); animation-duration: 3.4s, 3.8s, 4.2s, 4.6s; }
+.orb.listening::after { inset: 37%; opacity: 0.45; }
+
+.orb.thinking .orb-blob { animation-duration: 1.7s, 1.9s, 2.1s, 2.3s; }
+.orb.thinking::after { opacity: 0.62; }
+
+.orb.speaking .orb-blob { animation-duration: 2.6s, 3s, 3.4s, 3.8s; filter: blur(16px); }
+.orb.speaking::after { inset: 35%; }
+
+/* muted: same shape, drained of life rather than hidden */
+.orb.muted { filter: grayscale(0.88) saturate(0.3); }
+.orb.muted .orb-blob { animation-duration: 20s, 22s, 24s, 26s; opacity: 0.55; }
+
+/* listening level bars */
+.bars { display: flex; align-items: center; gap: 3px; height: 26px; }
+.bars i { width: 3.5px; border-radius: 2px; background: var(--sky-dark); animation: lvl 0.9s ease-in-out infinite; }
+.bars i:nth-child(1) { height: 9px;  animation-delay: 0s }
+.bars i:nth-child(2) { height: 17px; animation-delay: .12s }
+.bars i:nth-child(3) { height: 25px; animation-delay: .24s }
+.bars i:nth-child(4) { height: 17px; animation-delay: .36s }
+.bars i:nth-child(5) { height: 9px;  animation-delay: .48s }
+@keyframes lvl { 0%,100% { transform: scaleY(.4) } 50% { transform: scaleY(1) } }
+
+/* speaking waveform */
+.wave { display: flex; align-items: center; gap: 2.5px; height: 24px; }
+.wave i { width: 3px; border-radius: 2px; background: var(--sky-dark); height: 100%; animation: spk 1.1s ease-in-out infinite; }
+.wave i:nth-child(odd) { animation-delay: .15s }
+.wave i:nth-child(3n) { animation-delay: .3s }
+@keyframes spk { 0%,100% { transform: scaleY(.25) } 50% { transform: scaleY(1) } }
+
+.orb-spin {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2.5px solid rgba(43,127,255,.25); border-top-color: var(--sky-dark);
+  animation: spin 0.75s linear infinite;
+}
+
+/* the floating button carries a miniature of the same orb */
+.fab-orb { position: relative; width: 26px; height: 26px; flex-shrink: 0; }
+.fab-orb .orb-blob { filter: blur(4px); width: 70%; height: 70%; }
+.fab-orb::after { content: ''; position: absolute; inset: 36%; border-radius: 50%; background: #fff; filter: blur(3px); opacity: .5; }
+
+.vmode-status { font-size: 13.5px; font-weight: 600; color: var(--muted); min-height: 20px; }
+
+.vmode-transcript { margin-top: 12px; }
+.vmode-transcript .said {
+  font-size: 13.5px; color: var(--muted); font-style: italic;
+  margin: 0 0 8px; max-width: 46ch; margin-inline: auto;
+}
+.vmode-transcript .reply {
+  font-size: 16px; line-height: 1.55; color: var(--text);
+  margin: 0; max-width: 46ch; margin-inline: auto;
+}
+
+.vmode-foot {
+  display: flex; gap: 8px; align-items: center;
+  padding: 11px 16px 14px; border-top: 1px solid var(--line);
+}
+.vmode-foot input { flex: 1; border-radius: 999px; padding: 11px 16px; }
+.vmode-foot .primary { margin-left: 0; padding: 11px 17px; border-radius: 999px; width: auto; }
+.vmode-foot.hidden { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .orb-blob, .bars i, .wave i, .orb-spin { animation: none !important; }
 }

@@ -74,3 +74,16 @@ export const Mic = s(
 )
 export const Stop = s(<rect x="6" y="6" width="12" height="12" rx="2" />)
 export const X = s(<path d="M18 6 6 18M6 6l12 12" />)
+export const MicOff = s(
+  <>
+    <path d="M15 9.3V5a3 3 0 0 0-5.7-1.3M9 9v2a3 3 0 0 0 4.6 2.5" />
+    <path d="M17 16.9A7 7 0 0 1 5 11M19 11a7 7 0 0 1-.6 2.8M12 18v4" />
+    <path d="m2 2 20 20" />
+  </>,
+)
+export const Keyboard = s(
+  <>
+    <rect x="2" y="5" width="20" height="14" rx="2" />
+    <path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M6 13h.01M18 13h.01M10 13h4" />
+  </>,
+)

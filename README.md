@@ -177,6 +177,15 @@ Numbers in any presentation must come from this script, not from memory.
 Tap **पूछें / Ask**, say what happened, and it answers out loud and drives the app for
 you — opens the right card, or runs the check itself, or jumps to emergency mode.
 
+- **Hands-free.** Tap the orb once: it listens, answers aloud, then listens again. Tap
+  again at any point to interrupt — barge-in matters more than animation when someone is
+  mid-panic. It asks one follow-up question per turn and runs the actual check once it
+  has enough, instead of interviewing forever.
+- The orb is **pure CSS** — four blurred colour lobes drifting around a white core, with
+  distinct idle / listening / thinking / speaking / muted states. No Lottie, no canvas,
+  nothing extra to download on a cheap phone, and `prefers-reduced-motion` turns it off.
+- Layout follows the reference: **mic · orb · keyboard** across the middle with one status
+  line under it. Mute drains the orb rather than hiding it.
 - Speech in and out uses the **native Android engines** through Capacitor. The system
   WebView cannot be relied on for recognition, so the browser's Web Speech API is only
   the fallback path.

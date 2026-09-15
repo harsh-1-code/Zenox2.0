@@ -38,7 +38,12 @@ export async function speak(text: string, lang: VLang): Promise<void> {
     u.lang = BCP[lang]
     const v = webVoices.find((x) => x.lang === BCP[lang]) ?? webVoices.find((x) => x.lang.startsWith(lang))
     if (v) u.voice = v
-    speechSynthesis.speak(u)
+    // Resolve only when it has finished, so the caller can listen again straight after.
+    await new Promise<void>((done) => {
+      u.onend = () => done()
+      u.onerror = () => done()
+      speechSynthesis.speak(u)
+    })
   } catch {
     /* a silent guide is still a working guide */
   }
