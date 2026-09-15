@@ -182,3 +182,57 @@ def test_case_summary_never_leaks_a_secret():
     v = _verdict(scam_evidence=[Evidence(type="OBSERVED",
                                          statement=redact.scrub_secrets("OTP 448192 was asked for"))])
     assert "448192" not in helpdesk.case_summary(v)
+
+
+# --- the app must actually boot -----------------------------------------------
+
+def test_the_app_imports():
+    """A circular import between pipeline and localize crashed the server at startup
+    while every test here still passed, because nothing imported the app. Render kept
+    serving the previous build and the failure stayed invisible. This is the guard."""
+    from app.main import app
+
+    paths = {r.path for r in app.routes}
+    for required in (
+        "/api/analyze", "/api/investigate", "/api/assistant",
+        "/api/helpdesk", "/api/lending-app/check", "/api/health",
+    ):
+        assert required in paths, f"missing route {required}"
+
+
+def test_every_module_imports():
+    """Same reason: an import-time error in a module no test touches is invisible."""
+    import importlib
+
+    for m in (
+        "actions", "assistant", "claude", "config", "guards", "helpdesk",
+        "lending", "localize", "main", "pipeline", "prompt", "redact",
+        "schemas", "session",
+    ):
+        importlib.import_module(f"app.{m}")
+
+
+# --- the app must actually boot -----------------------------------------------
+
+def test_the_app_imports():
+    """A circular import between pipeline and localize crashed the server at startup
+    while every test here still passed, because nothing imported the app. Render kept
+    serving the previous build and the failure stayed invisible. This is the guard."""
+    from app.main import app
+
+    paths = {r.path for r in app.routes}
+    for required in (
+        "/api/analyze", "/api/investigate", "/api/assistant",
+        "/api/helpdesk", "/api/lending-app/check", "/api/health",
+    ):
+        assert required in paths, f"missing route {required}"
+
+
+def test_every_module_imports():
+    """Same reason: an import-time error in a module no test touches is invisible."""
+    import importlib
+
+    for m in ("actions", "assistant", "claude", "config", "guards", "helpdesk",
+              "lending", "localize", "main", "pipeline", "prompt", "redact",
+              "schemas", "session"):
+        importlib.import_module(f"app.{m}")

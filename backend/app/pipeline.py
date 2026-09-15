@@ -11,24 +11,15 @@ import json
 import re
 from typing import Optional
 
-from anthropic import Anthropic
 from pydantic import ValidationError
 
 from . import actions, guards, lending, localize, prompt, redact, session
-from .config import ANTHROPIC_API_KEY, ANTHROPIC_MODEL, DATA, MAX_TOKENS
+from .claude import get_client as _get_client
+from .config import ANTHROPIC_MODEL, DATA, MAX_TOKENS
 from .schemas import Assessment, ScamDNA, Verdict
 
 _SOURCES = json.loads((DATA / "sources.json").read_text())
-_client: Optional[Anthropic] = None
-
 _WEB_SEARCH = {"type": "web_search_20260209", "name": "web_search", "max_uses": 3}
-
-
-def _get_client() -> Anthropic:
-    global _client
-    if _client is None:
-        _client = Anthropic(api_key=ANTHROPIC_API_KEY or None)
-    return _client
 
 
 def _extract_json(raw: str) -> dict:

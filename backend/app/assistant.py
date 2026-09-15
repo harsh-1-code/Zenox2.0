@@ -14,7 +14,7 @@ from pydantic import ValidationError
 
 from . import session
 from .config import ANTHROPIC_MODEL, PROMPTS
-from .pipeline import _get_client
+from .claude import get_client as _get_client
 from .schemas import AssistantReply
 
 _TEMPLATE = (PROMPTS / "assistant.md").read_text()

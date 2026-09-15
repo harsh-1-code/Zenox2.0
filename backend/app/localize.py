@@ -13,7 +13,7 @@ import json
 from typing import List
 
 from .config import ANTHROPIC_MODEL
-from .pipeline import _get_client
+from .claude import get_client as _get_client
 from .schemas import Action
 
 HANDWRITTEN = {"en", "hi"}
