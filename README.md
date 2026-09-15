@@ -172,6 +172,26 @@ input and penalises correct paraphrasing; treat it as a smoke test, not a measur
 
 Numbers in any presentation must come from this script, not from memory.
 
+## It watches incoming SMS
+
+With the app closed, an arriving SMS is checked as it lands and a warning appears before
+the person opens it — the moment of decision starts when the message arrives, not when
+someone remembers an app exists.
+
+**The on-arrival check never touches the network.** `SmsWatcher.java` runs a local pattern
+score (unrequested link, shortener, urgency, credential ask, payment demand, install
+request) and only raises a notification when several independent signals coincide. The
+message body leaves the device only if the person **taps** that warning, which routes it
+through the ordinary share path into the full assessment.
+
+That split is deliberate. Silently uploading every SMS someone receives would be
+indefensible in a product whose promise is that nothing is stored, and the PS asks for an
+advisory assistant, not a background collector. The local check is a doorbell, not a
+verdict: it decides only whether something is worth your attention, and every real
+judgement still arrives with evidence and sources from the full check.
+
+A genuine bank SMS scores zero and stays silent.
+
 ## The in-app voice guide
 
 Tap **पूछें / Ask**, say what happened, and it answers out loud and drives the app for
