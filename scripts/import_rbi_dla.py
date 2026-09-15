@@ -13,23 +13,60 @@ Column names vary between exports, so headers are matched loosely.
 """
 
 import json
+import re
 import sys
 from datetime import date
 from pathlib import Path
 
 DATA = Path(__file__).resolve().parent.parent / "backend/data/lending_apps.json"
 
-APP_COLS = ("dla", "app name", "name of dla", "digital lending app", "app")
-ENT_COLS = ("regulated entity", "name of re", "re name", "entity", "lender")
-TYPE_COLS = ("entity type", "re type", "category", "type")
+# Header names vary between exports ("Name of the DLA", "DLA Name", "App"), so match on
+# words rather than substrings. Substring matching put the title line - "Digital Lending
+# Apps (DLAs) deployed by Regulated Entities" - through as the header, because it contains
+# "dla"; word matching plus the two-column rule below rejects it.
+_WORDS = re.compile(r"[a-z]+")
 
 
-def pick(headers: list, wanted: tuple) -> int:
-    for i, h in enumerate(headers):
-        if any(w == str(h).strip().lower() for w in wanted):
+def words(cell) -> set:
+    return set(_WORDS.findall(str(cell or "").lower()))
+
+
+def is_app_col(cell) -> bool:
+    w = words(cell)
+    if w & {"dla", "dlas"}:
+        return True
+    return "app" in w and bool(w & {"name", "lending", "digital"})
+
+
+def is_entity_col(cell) -> bool:
+    w = words(cell)
+    return bool(w & {"re", "res", "entity", "entities", "lender", "lenders"})
+
+
+def is_type_col(cell) -> bool:
+    w = words(cell)
+    return "type" in w or "category" in w
+
+
+def index_of(cells: list, test) -> int:
+    for i, c in enumerate(cells):
+        if test(c):
             return i
-    for i, h in enumerate(headers):  # substring fallback
-        if any(w in str(h).strip().lower() for w in wanted):
+    return -1
+
+
+def find_header(rows: list) -> int:
+    """The real header names both an app column and an entity column and has several
+    filled cells. Title and "as on" lines above it have neither."""
+    for i, r in enumerate(rows[:15]):
+        cells = list(r)
+        if sum(1 for c in cells if str(c or "").strip()) < 2:
+            continue
+        if index_of(cells, is_app_col) >= 0 and index_of(cells, is_entity_col) >= 0:
+            return i
+    for i, r in enumerate(rows[:15]):   # some exports omit the entity column
+        cells = list(r)
+        if sum(1 for c in cells if str(c or "").strip()) >= 2 and index_of(cells, is_app_col) >= 0:
             return i
     return -1
 
@@ -49,19 +86,22 @@ def read_rows(path: Path) -> list:
 
 
 def main() -> None:
-    if len(sys.argv) != 2:
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    if len(args) != 1:
         sys.exit(__doc__)
-    rows = [r for r in read_rows(Path(sys.argv[1])) if r and any(c for c in r)]
+    rows = [r for r in read_rows(Path(args[0])) if r and any(c for c in r)]
     if not rows:
         sys.exit("file is empty")
 
-    # The export usually carries title rows above the real header.
-    head_i = next((i for i, r in enumerate(rows[:12]) if pick(list(r), APP_COLS) >= 0), -1)
+    head_i = find_header(rows)
     if head_i < 0:
-        sys.exit(f"no app-name column found. First row seen: {rows[0]}")
+        sys.exit(f"no header row found. First rows seen:\n" +
+                 "\n".join(str(r) for r in rows[:5]))
 
     headers = list(rows[head_i])
-    ai, ei, ti = pick(headers, APP_COLS), pick(headers, ENT_COLS), pick(headers, TYPE_COLS)
+    ai = index_of(headers, is_app_col)
+    ei = index_of(headers, is_entity_col)
+    ti = index_of(headers, is_type_col)
 
     def cell(r: list, i: int) -> str:
         return str(r[i]).strip() if 0 <= i < len(r) and r[i] is not None else ""
@@ -77,6 +117,18 @@ def main() -> None:
             "entity": cell(r, ei) or "Not stated",
             "entity_type": cell(r, ti) or "RE",
         })
+
+    if not apps:
+        sys.exit("header found but no rows under it - check the export")
+
+    print(f"header row {head_i + 1}: {headers}")
+    print("first three parsed:")
+    for a in apps[:3]:
+        print(f"  {a['app']}  |  {a['entity']}  |  {a['entity_type']}")
+    print(f"... {len(apps)} unique apps total")
+
+    if "--yes" not in sys.argv and input("\nimport these? [y/N] ").strip().lower() != "y":
+        sys.exit("cancelled")
 
     cur = json.loads(DATA.read_text())
     cur["apps"] = apps
