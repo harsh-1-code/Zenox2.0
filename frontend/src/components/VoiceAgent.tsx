@@ -34,12 +34,14 @@ export default function VoiceAgent({
   const [handsFree, setHandsFree] = useState(false)
   const [typed, setTyped] = useState('')
   const [muted, setMuted] = useState(false)
+  const [level, setLevel] = useState(0)
   const [keyboard, setKeyboard] = useState(false)
   const L = t(lang)
 
   // A ref, not state: the async loop below must see the live value, not a stale closure.
   const running = useRef(false)
   const turnsRef = useRef<Turn[]>([])
+  const stopMeter = useRef<(() => void) | null>(null)
   turnsRef.current = turns
 
   useEffect(() => {
@@ -48,6 +50,9 @@ export default function VoiceAgent({
 
   const stopAll = useCallback(async () => {
     running.current = false
+    stopMeter.current?.()
+    stopMeter.current = null
+    setLevel(0)
     setHandsFree(false)
     await voice.stopSpeaking()
     await voice.stopListening()
@@ -89,7 +94,13 @@ export default function VoiceAgent({
   const loop = useCallback(async () => {
     while (running.current) {
       setPhase('listening')
+      // Real amplitude drives the orb. If the recogniser holds the mic exclusively this
+      // returns null and the orb keeps its own motion - never a blocker.
+      stopMeter.current = await voice.meter(setLevel)
       const heard = await voice.listen(lang)
+      stopMeter.current?.()
+      stopMeter.current = null
+      setLevel(0)
       if (!running.current) break
       if (!heard) {
         setPhase('idle')
@@ -140,7 +151,6 @@ export default function VoiceAgent({
           <span className="orb-blob b3" />
           <span className="orb-blob b4" />
         </span>
-        <span>{L.voiceFab}</span>
       </button>
     )
 
@@ -158,31 +168,14 @@ export default function VoiceAgent({
   return (
     <div className="vmode" role="dialog" aria-label={L.voiceOpen}>
       <div className="vmode-top">
-        <div className="vmode-name">
-          <Sparkle size={15} /> {L.voiceName}
-        </div>
-        <button className="ghost" onClick={() => setOpen(false)} aria-label="Close">
-          <X size={17} />
-        </button>
+        <div className="vmode-name">{L.voiceName}</div>
       </div>
 
       <div className="vmode-stage">
         <div className="vmode-controls">
           <button
-            className={`side-btn ${muted ? 'muted' : ''}`}
-            onClick={() => {
-              setMuted((m) => !m)
-              if (!muted) stopAll()
-            }}
-            aria-pressed={muted}
-            aria-label={muted ? L.unmute : L.mute}
-            disabled={!hasMic}
-          >
-            {muted || !hasMic ? <MicOff size={20} /> : <Mic size={20} />}
-          </button>
-
-          <button
             className={`orb ${orbPhase}`}
+            style={{ ['--level' as any]: level.toFixed(3) }}
             onClick={tapOrb}
             aria-label={phase === 'idle' ? L.tapToSpeak : L.stopLabel}
             disabled={phase === 'thinking' || muted || !hasMic}
@@ -207,15 +200,6 @@ export default function VoiceAgent({
               )}
             </span>
           </button>
-
-          <button
-            className={`side-btn ${keyboard ? 'active' : ''}`}
-            onClick={() => setKeyboard((k) => !k)}
-            aria-pressed={keyboard}
-            aria-label={L.typeInstead}
-          >
-            <Keyboard size={20} />
-          </button>
         </div>
 
         <div className="vmode-status" aria-live="polite">{status}</div>
@@ -238,16 +222,44 @@ export default function VoiceAgent({
         </div>
       </div>
 
-      <div className={`vmode-foot ${keyboard || !hasMic ? '' : 'hidden'}`}>
+      <div className="vmode-foot">
         <input
+          className={keyboard || !hasMic ? '' : 'hidden'}
           value={typed}
           onChange={(e) => setTyped(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && sendTyped()}
-          placeholder={hasMic ? L.voicePlaceholder : L.voicePlaceholderNoMic}
+          placeholder={L.voicePlaceholder}
           aria-label={L.voicePlaceholder}
         />
-        <button className="primary" disabled={!typed.trim() || phase === 'thinking'} onClick={sendTyped}>
-          {L.send}
+        {typed.trim() && (
+          <button className="primary" disabled={phase === 'thinking'} onClick={sendTyped}>
+            {L.send}
+          </button>
+        )}
+        {!typed.trim() && <div style={{ flex: 1 }} />}
+
+        <button
+          className={`side-btn ${keyboard ? 'active' : ''}`}
+          onClick={() => setKeyboard((k) => !k)}
+          aria-pressed={keyboard}
+          aria-label={L.typeInstead}
+        >
+          <Keyboard size={19} />
+        </button>
+        <button
+          className={`side-btn ${muted ? 'muted' : ''}`}
+          onClick={() => {
+            setMuted((m) => !m)
+            if (!muted) stopAll()
+          }}
+          aria-pressed={muted}
+          aria-label={muted ? L.unmute : L.mute}
+          disabled={!hasMic}
+        >
+          {muted || !hasMic ? <MicOff size={19} /> : <Mic size={19} />}
+        </button>
+        <button className="side-btn close-btn" onClick={() => setOpen(false)} aria-label="Close">
+          <X size={19} />
         </button>
       </div>
     </div>

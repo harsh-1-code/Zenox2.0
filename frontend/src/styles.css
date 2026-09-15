@@ -452,26 +452,30 @@ footer { color: var(--muted); font-size: 11.5px; margin-top: 22px; border-top: 1
 
 .fab {
   position: fixed; z-index: 90;
-  right: 16px; bottom: calc(18px + env(safe-area-inset-bottom));
-  display: flex; align-items: center; gap: 9px;
-  background: var(--sky); border: 1px solid var(--sky-dark); color: #fff;
-  border-radius: 999px; padding: 13px 20px; font-weight: 650; font-size: 15px;
-  box-shadow: 0 6px 22px rgba(43, 127, 255, 0.42);
+  right: 18px; bottom: calc(20px + env(safe-area-inset-bottom));
+  width: 62px; height: 62px; padding: 0;
+  display: grid; place-items: center;
+  background: #fff; border: 1px solid var(--line);
+  border-radius: 50%;
+  box-shadow: 0 6px 24px rgba(13, 27, 47, 0.16);
+  animation: fabIn 0.4s var(--ease) both;
 }
-.fab:hover { background: #3d8cff; box-shadow: 0 8px 30px rgba(43, 127, 255, 0.5); }
+.fab:hover { transform: scale(1.05); box-shadow: 0 10px 30px rgba(13, 27, 47, 0.22); }
+@keyframes fabIn { from { opacity: 0; transform: scale(.7) } to { opacity: 1; transform: none } }
 
 .vmode {
-  position: fixed; z-index: 95;
-  left: 0; right: 0; bottom: 0;
-  background: var(--card);
-  border-top: 1px solid var(--line);
-  border-radius: 24px 24px 0 0;
-  box-shadow: 0 -10px 46px rgba(13, 27, 47, 0.18);
+  position: fixed; inset: 0; z-index: 95;
+  background: radial-gradient(120% 90% at 50% 42%, #ffffff 0%, #f3f7fd 55%, #eaf1fa 100%);
+  display: flex; flex-direction: column;
+  padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
-  animation: sheet 0.26s var(--ease) both;
-  max-height: 88vh; display: flex; flex-direction: column;
+  animation: vopen 0.42s var(--ease) both;
 }
-@keyframes sheet { from { transform: translateY(100%); } to { transform: none; } }
+/* opens from the corner the button sits in, so the orb feels like it grew out of it */
+@keyframes vopen {
+  from { opacity: 0; clip-path: circle(9% at calc(100% - 48px) calc(100% - 50px)); }
+  to   { opacity: 1; clip-path: circle(150% at calc(100% - 48px) calc(100% - 50px)); }
+}
 
 .vmode-top {
   display: flex; align-items: center; justify-content: space-between;
@@ -483,13 +487,14 @@ footer { color: var(--muted); font-size: 11.5px; margin-top: 22px; border-top: 1
 }
 .vmode-top .ghost { padding: 7px 10px; min-height: 36px; }
 
-.vmode-stage { padding: 6px 16px 14px; text-align: center; overflow-y: auto; }
+.vmode-stage {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 10px 20px; text-align: center; overflow-y: auto;
+}
 
 /* --- controls row: mic | orb | keyboard --- */
-.vmode-controls {
-  display: flex; align-items: center; justify-content: center; gap: 26px;
-  margin: 6px 0 12px;
-}
+.vmode-controls { display: contents; }
 .side-btn {
   width: 48px; height: 48px; padding: 0; flex-shrink: 0;
   border-radius: 50%; display: grid; place-items: center;
@@ -504,7 +509,8 @@ footer { color: var(--muted); font-size: 11.5px; margin-top: 22px; border-top: 1
    core, not a ring. Pure CSS - no Lottie, no canvas, nothing extra to download
    on a cheap phone, and prefers-reduced-motion switches it all off. */
 .orb {
-  position: relative; width: 128px; height: 128px; flex-shrink: 0;
+  position: relative; width: min(60vw, 240px); height: min(60vw, 240px); flex-shrink: 0;
+  --level: 0;
   border: none; background: none; padding: 0; border-radius: 50%;
   display: grid; place-items: center; cursor: pointer;
   transition: transform 0.25s var(--ease), filter 0.35s var(--ease);
@@ -514,9 +520,10 @@ footer { color: var(--muted); font-size: 11.5px; margin-top: 22px; border-top: 1
 
 .orb-blob {
   position: absolute; width: 62%; height: 62%; border-radius: 50%;
-  filter: blur(15px);
-  will-change: transform;
+  filter: blur(22px);
+  will-change: transform, filter;
   opacity: 0.95;
+  transition: filter 90ms linear, opacity 90ms linear;
 }
 .b1 { background: radial-gradient(circle, #ff3d5e 0%, #ff3d5e 26%, rgba(255,61,94,0) 72%); top: 4%;  left: 12%; animation: drift1 6.5s ease-in-out infinite; }
 .b2 { background: radial-gradient(circle, #1a6bff 0%, #1a6bff 26%, rgba(26,107,255,0) 72%); top: 28%; left: 0%;  animation: drift2 7.5s ease-in-out infinite; }
@@ -530,13 +537,14 @@ footer { color: var(--muted); font-size: 11.5px; margin-top: 22px; border-top: 1
 
 /* white bloom at the centre, the thing that makes it read as Siri rather than a blob */
 .orb::after {
+  transition: inset 90ms linear, opacity 90ms linear;
   content: ''; position: absolute; inset: 33%;
-  border-radius: 50%; background: #fff; filter: blur(11px); opacity: 0.55;
+  border-radius: 50%; background: #fff; filter: blur(18px); opacity: 0.55;
   pointer-events: none;
 }
 
 .orb-core {
-  position: relative; z-index: 3;
+  position: absolute; bottom: -34px; z-index: 3;
   display: grid; place-items: center; color: var(--sky-dark);
   transition: opacity 0.25s var(--ease);
 }
@@ -544,9 +552,13 @@ footer { color: var(--muted); font-size: 11.5px; margin-top: 22px; border-top: 1
 .orb.idle .orb-blob { animation-duration: 12s, 14s, 16s, 18s; }
 .orb.idle { filter: saturate(0.95); }
 
-.orb.listening { transform: scale(1.08); }
-.orb.listening .orb-blob { filter: blur(15px); animation-duration: 3.4s, 3.8s, 4.2s, 4.6s; }
-.orb.listening::after { inset: 37%; opacity: 0.45; }
+.orb.listening { transform: scale(calc(1.02 + var(--level) * 0.22)); }
+.orb.listening .orb-blob {
+  filter: blur(calc(20px + var(--level) * 16px));
+  animation-duration: 3.4s, 3.8s, 4.2s, 4.6s;
+  opacity: calc(0.8 + var(--level) * 0.2);
+}
+.orb.listening::after { inset: calc(38% - var(--level) * 12%); opacity: calc(0.5 - var(--level) * 0.25); }
 
 .orb.thinking .orb-blob { animation-duration: 1.7s, 1.9s, 2.1s, 2.3s; }
 .orb.thinking::after { opacity: 0.62; }
@@ -586,25 +598,29 @@ footer { color: var(--muted); font-size: 11.5px; margin-top: 22px; border-top: 1
 .fab-orb .orb-blob { filter: blur(4px); width: 70%; height: 70%; }
 .fab-orb::after { content: ''; position: absolute; inset: 36%; border-radius: 50%; background: #fff; filter: blur(3px); opacity: .5; }
 
-.vmode-status { font-size: 13.5px; font-weight: 600; color: var(--muted); min-height: 20px; }
+.vmode-status { font-size: 15px; font-weight: 600; color: var(--muted); min-height: 22px; margin-top: 46px; }
 
-.vmode-transcript { margin-top: 12px; }
+.vmode-transcript { margin-top: 20px; max-width: 32rem; }
 .vmode-transcript .said {
   font-size: 13.5px; color: var(--muted); font-style: italic;
   margin: 0 0 8px; max-width: 46ch; margin-inline: auto;
 }
 .vmode-transcript .reply {
-  font-size: 16px; line-height: 1.55; color: var(--text);
+  font-size: 17px; line-height: 1.55; color: var(--text);
   margin: 0; max-width: 46ch; margin-inline: auto;
 }
 
 .vmode-foot {
-  display: flex; gap: 8px; align-items: center;
-  padding: 11px 16px 14px; border-top: 1px solid var(--line);
+  display: flex; gap: 9px; align-items: center;
+  padding: 12px 16px 18px;
 }
+.vmode-foot .side-btn { width: 46px; height: 46px; border: none; background: #e9eef6; }
+.vmode-foot .side-btn.muted { background: #dde4ee; }
+.vmode-foot .close-btn { background: var(--text); color: #fff; border: none; }
+.vmode-foot .close-btn:hover { background: #1d3050; }
 .vmode-foot input { flex: 1; border-radius: 999px; padding: 11px 16px; }
 .vmode-foot .primary { margin-left: 0; padding: 11px 17px; border-radius: 999px; width: auto; }
-.vmode-foot.hidden { display: none; }
+.vmode-foot input.hidden { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .orb-blob, .bars i, .wave i, .orb-spin { animation: none !important; }

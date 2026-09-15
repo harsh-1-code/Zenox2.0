@@ -124,3 +124,53 @@ export async function stopListening(): Promise<void> {
     /* already stopped */
   }
 }
+
+// ---------- live input level ----------
+
+/**
+ * Real microphone amplitude, so the orb reacts to the actual voice instead of
+ * looping a canned animation.
+ *
+ * The native recogniser may hold the mic exclusively on some devices; if
+ * getUserMedia is refused we return null and the caller keeps its idle motion.
+ * Returns a stop function.
+ */
+export async function meter(onLevel: (v: number) => void): Promise<(() => void) | null> {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    const Ctx = (window as any).AudioContext ?? (window as any).webkitAudioContext
+    const ctx: AudioContext = new Ctx()
+    const src = ctx.createMediaStreamSource(stream)
+    const node = ctx.createAnalyser()
+    node.fftSize = 512
+    node.smoothingTimeConstant = 0.75
+    src.connect(node)
+
+    const buf = new Uint8Array(node.frequencyBinCount)
+    let raf = 0
+    let alive = true
+
+    const tick = () => {
+      if (!alive) return
+      node.getByteFrequencyData(buf)
+      // Speech energy sits low in the spectrum; averaging the whole range washes it out.
+      let sum = 0
+      const n = Math.floor(buf.length * 0.4)
+      for (let i = 0; i < n; i++) sum += buf[i]
+      const avg = sum / n / 255
+      onLevel(Math.min(1, avg * 2.6)) // scale so normal speech reaches most of the range
+      raf = requestAnimationFrame(tick)
+    }
+    tick()
+
+    return () => {
+      alive = false
+      cancelAnimationFrame(raf)
+      stream.getTracks().forEach((t) => t.stop())
+      ctx.close().catch(() => {})
+      onLevel(0)
+    }
+  } catch {
+    return null
+  }
+}
