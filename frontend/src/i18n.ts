@@ -4,7 +4,8 @@ import type { Lang } from './types'
 
 const S = {
   en: {
-    title: 'Is this a scam?',
+    title: 'Digi संरक्षक AI',
+    tagline: 'Is this a scam?',
     subtitle: 'Paste the message, upload the screenshot, or describe the call.',
     modes: { text: 'Message', image: 'Screenshot', call: 'Call', app: 'App name' },
     placeholders: {
@@ -50,7 +51,8 @@ const S = {
     },
   },
   hi: {
-    title: 'क्या यह धोखा है?',
+    title: 'Digi संरक्षक AI',
+    tagline: 'क्या यह धोखा है?',
     subtitle: 'मैसेज पेस्ट करें, स्क्रीनशॉट अपलोड करें, या कॉल के बारे में बताएं।',
     modes: { text: 'मैसेज', image: 'स्क्रीनशॉट', call: 'कॉल', app: 'ऐप का नाम' },
     placeholders: {

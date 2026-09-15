@@ -75,7 +75,9 @@ export default function App() {
     <div className="page">
       <header>
         <div>
-          <h1>{L.title}</h1>
+          <h1>
+            {L.title} <span className="tagline">{L.tagline}</span>
+          </h1>
           <p className="sub">{L.subtitle}</p>
         </div>
         <div className="head-right">
