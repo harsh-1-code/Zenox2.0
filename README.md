@@ -77,6 +77,29 @@ input and penalises correct paraphrasing; treat it as a smoke test, not a measur
 
 Numbers in any presentation must come from this script, not from memory.
 
+## The RBI lending-app directory
+
+RBI has run a public directory of Digital Lending Apps deployed by its regulated
+entities since 01-07-2025 (`rbi.org.in` -> Citizen's Corner -> "DLA's deployed by
+Regulated Entities"). It is served through a JavaScript report viewer, so it cannot be
+fetched programmatically - the export is a manual step.
+
+**This build ships with that list empty, deliberately.** A fabricated "RBI list" inside
+a fraud-safety tool is the same false authority the product exists to expose. Until it
+is imported the app says `DIRECTORY NOT LOADED`, links the user to the authoritative
+page, and falls back to live web research for app-name questions - which is enforced in
+`pipeline.py`, not in the UI, so every client gets it.
+
+To load it:
+
+```bash
+# export the directory to CSV or Excel from the RBI viewer, then
+python scripts/import_rbi_dla.py ~/Downloads/dla_directory.xlsx
+```
+
+That sets `last_updated` to the import date, which the UI shows next to every result -
+the PS requires the date the list was last updated to be visible.
+
 ## Run
 
 ```bash
@@ -125,7 +148,7 @@ Both inside the one-minute target; the instant path is what the demo leads with.
 
 ## Before the demo
 
-- [ ] Replace `backend/data/lending_apps.json` with the real RBI list. It is placeholder data.
+- [ ] Import the RBI directory (see below). The app ships with it empty, on purpose.
 - [ ] Fill in `last_verified` dates in `backend/data/sources.json`.
 - [ ] Expand `backend/data/cases.json` to ~50 cases, roughly half genuine.
 - [ ] Run `python eval.py` and paste the real numbers into the deck. Do not invent them.

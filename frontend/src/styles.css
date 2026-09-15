@@ -77,11 +77,8 @@ body::before {
 .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .brand-mark {
   width: 38px; height: 38px;
-  border-radius: 11px;
-  background: linear-gradient(145deg, var(--sky) 0%, var(--sky-dark) 100%);
-  display: grid; place-items: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 7px rgba(43, 127, 255, 0.3);
+  object-fit: contain;
 }
 .brand-name { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
 .brand-sub { font-size: 11.5px; color: var(--muted); line-height: 1.2; }

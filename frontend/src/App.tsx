@@ -96,8 +96,11 @@ export default function App() {
 
   function onSubmit(p: Payload) {
     setLast(p)
-    // Fast path: no web search, so the verdict lands well inside the one-minute target.
-    run(() => api.analyze({ ...p, session_id: verdict?.session_id, lang }))
+    // Fast path by default, so the verdict lands well inside the one-minute target.
+    // An app name is the exception: the RBI directory is not bundled, so live research
+    // is the only honest way to say anything about the app at all.
+    const deep = p.input_type === 'app'
+    run(() => api.analyze({ ...p, session_id: verdict?.session_id, lang, deep }))
   }
 
   const onResearch = () =>
@@ -119,9 +122,7 @@ export default function App() {
     <div className="page">
       <div className="topbar">
         <div className="brand">
-          <span className="brand-mark" style={{ color: '#fff' }}>
-            <Shield size={20} />
-          </span>
+          <img className="brand-mark" src="/logo.png" alt="" width={38} height={38} />
           <div>
             <div className="brand-name">{L.brand}</div>
             <div className="brand-sub">{L.brandSub}</div>

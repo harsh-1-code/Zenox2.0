@@ -99,15 +99,38 @@ def test_claim_type_selects_its_verification_route():
 
 # --- lending ----------------------------------------------------------------
 
-def test_unknown_app_is_not_found_never_fraud():
+def _with_directory(monkeypatch, apps):
+    """The shipped build has an empty directory (see scripts/import_rbi_dla.py), so the
+    loaded-state tests supply their own rows rather than depending on invented data."""
+    monkeypatch.setattr(lending, "_APPS", apps)
+    monkeypatch.setattr(lending, "LOADED", bool(apps))
+
+
+def test_unknown_app_is_not_found_never_fraud(monkeypatch):
+    _with_directory(monkeypatch, [{"app": "RealLender", "entity": "X Bank", "entity_type": "Bank"}])
     r = lending.check("SomeAppNobodyHasHeardOf")
     assert r["status"] == "NOT_FOUND"
     assert "does not prove" in r["note"]
+    assert "fraud" not in r["status"].lower()
 
 
-def test_result_carries_source_and_date():
-    r = lending.check("SAMPLE-A")
-    assert r["status"] == "MATCHED" and r["last_updated"] and r["source"]
+def test_known_app_matches_and_carries_its_entity(monkeypatch):
+    _with_directory(monkeypatch, [{"app": "RealLender", "entity": "X Bank", "entity_type": "Bank"}])
+    r = lending.check("real lender")   # normalisation ignores case and spacing
+    assert r["status"] == "MATCHED"
+    assert r["matches"][0]["entity"] == "X Bank"
+
+
+def test_unloaded_directory_says_so_instead_of_guessing(monkeypatch):
+    _with_directory(monkeypatch, [])
+    r = lending.check("AnyApp")
+    assert r["status"] == "DIRECTORY_NOT_LOADED"
+    assert r["matches"] == []
+
+
+def test_result_always_carries_source_and_date():
+    r = lending.check("anything")
+    assert r["source"] and r["source_url"] and r["last_updated"]
 
 
 # --- help-desk output --------------------------------------------------------

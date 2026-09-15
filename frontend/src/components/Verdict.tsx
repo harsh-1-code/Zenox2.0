@@ -42,7 +42,10 @@ export default function VerdictView({ v, lang }: { v: Verdict; lang: Lang }) {
         {v.lending && (
           <div className={`lending-result ${v.lending.status}`}>
             <strong>
-              {L.referenceList}: {humanise(v.lending.status)}
+              {L.referenceList}:{' '}
+              {v.lending.status === 'DIRECTORY_NOT_LOADED'
+                ? L.dirNotLoaded
+                : humanise(v.lending.status)}
             </strong>
             {v.lending.matches.map((m) => (
               <div key={m.app}>
@@ -52,6 +55,14 @@ export default function VerdictView({ v, lang }: { v: Verdict; lang: Lang }) {
             {v.lending.note && <p className="note">{v.lending.note}</p>}
             <p className="src-line">
               {v.lending.source} · {L.lastUpdated} {v.lending.last_updated}
+              {v.lending.source_url && (
+                <>
+                  {' · '}
+                  <a href={v.lending.source_url} target="_blank" rel="noreferrer">
+                    {L.openDirectory}
+                  </a>
+                </>
+              )}
             </p>
           </div>
         )}

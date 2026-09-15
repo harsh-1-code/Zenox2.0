@@ -1,10 +1,11 @@
 {
-  "source": "RBI list of digital lending apps reported by regulated entities",
+  "source": "RBI directory — Digital Lending Apps (DLAs) deployed by Regulated Entities",
   "source_url": "https://www.rbi.org.in/",
-  "last_updated": "TODO",
-  "_warning": "PLACEHOLDER DATA. Replace with the actual RBI-published list before the demo. Do not present these entries as real.",
-  "apps": [
-    {"app": "SAMPLE-A", "entity": "Sample Bank Ltd", "entity_type": "Bank"},
-    {"app": "SAMPLE-B", "entity": "Sample NBFC Pvt Ltd", "entity_type": "NBFC"}
-  ]
+  "directory_url": "https://data.rbi.org.in/BOE/OpenDocument/opendoc/custom.jsp?sIDType=CUID&iDocID=ARfEgy.WNSVIvFfvSIVmBCw",
+  "directory_path": "rbi.org.in -> Citizen's Corner -> DLA's deployed by Regulated Entities",
+  "operational_since": "2025-07-01",
+  "last_updated": null,
+  "_status": "NOT_LOADED",
+  "_why": "The RBI directory is served through a JavaScript report viewer with no static export we can fetch. We do NOT ship invented entries: a fabricated 'RBI list' in a fraud-safety tool is exactly the kind of false authority this product exists to fight. Run scripts/import_rbi_dla.py once you export the directory to CSV/XLSX; until then the app says the directory is not loaded and links the user to the authoritative source.",
+  "apps": []
 }

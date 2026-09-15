@@ -52,7 +52,7 @@ export interface Verdict {
 }
 
 export interface LendingResult {
-  status: 'MATCHED' | 'NOT_FOUND' | 'AMBIGUOUS'
+  status: 'MATCHED' | 'NOT_FOUND' | 'AMBIGUOUS' | 'DIRECTORY_NOT_LOADED'
   matches: { app: string; entity: string; entity_type: string }[]
   source: string
   source_url: string

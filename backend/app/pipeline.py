@@ -93,6 +93,12 @@ def assess(
 ) -> Verdict:
     sid, data = session.get_or_create(session_id)
 
+    # An app name cannot be answered from an unloaded reference directory. Force live
+    # research for that intake rather than returning a confident-sounding nothing.
+    # Enforced here, not in the UI, so every client gets it.
+    if app_name and not lending.LOADED:
+        deep = True
+
     safe_text = redact.scrub_secrets(text or "")
     blocks = prompt.user_blocks(safe_text, image_b64, app_name, input_type, data["history"])
     system_prompt = prompt.system(lang, deep)
