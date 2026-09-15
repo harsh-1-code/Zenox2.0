@@ -236,3 +236,36 @@ def test_every_module_imports():
               "lending", "localize", "main", "pipeline", "prompt", "redact",
               "schemas", "session"):
         importlib.import_module(f"app.{m}")
+
+
+# --- the guide must stay in JSON across a conversation ------------------------
+
+def test_assistant_replays_past_replies_as_json():
+    """The client stores only the spoken text. Feeding that straight back made the model
+    copy its own apparent format and answer in prose from turn two onward, so every
+    follow-up parsed as a failure and came back as "I did not understand"."""
+    import json as _json
+    from app import assistant
+
+    sent = {}
+
+    class FakeClient:
+        class messages:
+            @staticmethod
+            def create(**kw):
+                sent.update(kw)
+                raise RuntimeError("stop here - we only care about what was sent")
+
+    assistant._get_client = lambda: FakeClient()
+    assistant.reply(
+        "and what about the link",
+        "en",
+        None,
+        [{"role": "user", "text": "i got a bank message"},
+         {"role": "assistant", "text": "Sure, paste it here."}],
+    )
+
+    past = [m for m in sent["messages"] if m["role"] == "assistant"]
+    assert past, "history was dropped"
+    for m in past:
+        assert _json.loads(m["content"])["say"], "assistant turn replayed as bare prose"

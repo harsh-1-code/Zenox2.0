@@ -47,13 +47,27 @@ def reply(message: str, lang: str, session_id: Optional[str], history: list) -> 
     safe = _SECRET.sub(lambda m: m.group(0).replace(m.group(2), "[not needed]"), message)
 
     system = _TEMPLATE.replace("{{LANGUAGE}}", _LANG.get(lang, "English"))
-    turns = [
-        {"role": h["role"], "content": h["text"]}
-        for h in history[-6:]
-        if h.get("role") in ("user", "assistant") and h.get("text")
-    ]
+    # Replay past assistant turns as the JSON they actually were, not as bare prose.
+    # The client stores only the spoken text, and feeding that back made the model copy
+    # its own apparent format: from turn two onward it answered in plain prose, the parse
+    # failed, and every follow-up came back as "I did not understand".
+    turns = []
+    for h in history[-6:]:
+        role, text = h.get("role"), h.get("text")
+        if role not in ("user", "assistant") or not text:
+            continue
+        if role == "assistant":
+            text = json.dumps({"say": text}, ensure_ascii=False)
+        turns.append({"role": role, "content": text})
     turns.append(
-        {"role": "user", "content": f"CURRENT SCREEN CONTEXT:\n{_context(session_id)}\n\nTHEY SAID:\n{safe}"}
+        {
+            "role": "user",
+            "content": (
+                f"CURRENT SCREEN CONTEXT:\n{_context(session_id)}\n\n"
+                f"THEY SAID:\n{safe}\n\n"
+                "Reply with the JSON object only."
+            ),
+        }
     )
 
     def attempt() -> AssistantReply:
