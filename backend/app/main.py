@@ -85,10 +85,9 @@ def delete_session(session_id: str) -> dict:
 
 # Demo convenience: hand out the built APK without putting a 4 MB binary inside the
 # web bundle (which would then ship inside the next APK).
-_APK = (
-    config.BASE.parent
-    / "frontend/android/app/build/outputs/apk/debug/app-debug.apk"
-)
+# Shipped with the backend rather than read from the Android build tree, which is not
+# deployed. Refresh it with scripts/publish_apk.sh after every rebuild.
+_APK = config.BASE / "static/digi-sanrakshak.apk"
 
 
 @app.get("/api/download/apk")

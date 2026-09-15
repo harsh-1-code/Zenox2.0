@@ -7,6 +7,9 @@ dist/
 .venv/
 .DS_Store
 frontend/public/*.apk
+# The distributed APK lives here instead: outside frontend/, so the Android build
+# never bundles a copy of itself, and tracked so Render can serve it.
+!backend/static/*.apk
 frontend/android/
 frontend/dist/
 backend/eval_report.json
