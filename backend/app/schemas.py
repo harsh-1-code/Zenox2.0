@@ -82,6 +82,10 @@ class AssistantRequest(BaseModel):
 
 
 class AssistantReply(BaseModel):
+    # Declared before `say` so the model commits to a language before writing the reply -
+    # the ordering is load-bearing, not cosmetic.
+    user_lang: str = "en-IN"
+    reply_lang: str = "en-IN"
     say: str
     action: Literal[
         "none", "open_message", "open_screenshot", "open_call",

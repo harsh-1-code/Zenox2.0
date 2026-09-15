@@ -81,7 +81,8 @@ export default function VoiceAgent({
 
       setTurns((t) => [...t, { role: 'assistant', text: reply.say }])
       setPhase('speaking')
-      await voice.speak(reply.say, lang)
+      // Speak in the language the model actually replied in, not the UI toggle.
+      await voice.speak(reply.say, reply.reply_lang)
       setPhase('idle')
 
       if (reply.action !== 'none') onAction(reply.action, reply.check_text)

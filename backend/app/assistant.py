@@ -68,7 +68,8 @@ def reply(message: str, lang: str, session_id: Optional[str], history: list) -> 
                 "मैं समझ नहीं पाया। क्या आप दोबारा बता सकते हैं?"
                 if lang == "hi"
                 else "I did not catch that. Could you say it again?"
-            )
+            ),
+            reply_lang="hi-IN" if lang == "hi" else "en-IN",
         )
     except Exception:  # noqa: BLE001 - a guide that crashes is worse than one that waits
         return AssistantReply(
@@ -76,5 +77,6 @@ def reply(message: str, lang: str, session_id: Optional[str], history: list) -> 
                 "अभी कनेक्शन में दिक्कत है। आप मैसेज सीधे ऐप में पेस्ट करके जांच सकते हैं।"
                 if lang == "hi"
                 else "I am having trouble connecting. You can paste the message into the app to check it directly."
-            )
+            ),
+            reply_lang="hi-IN" if lang == "hi" else "en-IN",
         )

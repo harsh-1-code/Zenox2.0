@@ -81,6 +81,8 @@ export type AssistantAction =
   | 'run_check'
 
 export interface AssistantReply {
+  user_lang: string
+  reply_lang: string
   say: string
   action: AssistantAction
   check_text: string | null

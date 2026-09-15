@@ -15,6 +15,26 @@ const native = Capacitor.isNativePlatform()
 const BCP = { hi: 'hi-IN', en: 'en-IN' } as const
 export type VLang = keyof typeof BCP
 
+/**
+ * Pick a speech voice for a reply that may be in any Indian language.
+ *
+ * Two cases the device cannot serve directly:
+ *   - Romanised Indic (hi-Latn-IN). A Hindi voice spells Roman letters out; an Indian
+ *     English voice reads them and Hinglish lands close enough.
+ *   - Languages with no installed voice (Bhojpuri, Maithili, Awadhi...). They are written
+ *     in Devanagari, so the Hindi voice reads them correctly even though the accent is off.
+ */
+const DEVANAGARI_COUSINS = ['bho', 'mai', 'mag', 'awa', 'raj', 'hne', 'sa', 'ne']
+
+export function voiceFor(tag?: string | null): string {
+  if (!tag) return 'en-IN'
+  const t = tag.trim()
+  if (/-latn/i.test(t)) return 'en-IN'
+  const base = t.split('-')[0].toLowerCase()
+  if (DEVANAGARI_COUSINS.includes(base)) return 'hi-IN'
+  return /-[A-Z]{2}$/.test(t) ? t : `${base}-IN`
+}
+
 // ---------- speaking ----------
 
 let webVoices: SpeechSynthesisVoice[] = []
@@ -24,19 +44,27 @@ if (!native && typeof speechSynthesis !== 'undefined') {
   speechSynthesis.onvoiceschanged = load
 }
 
-export async function speak(text: string, lang: VLang): Promise<void> {
+/** `tag` is a BCP-47 tag from the model, not the UI toggle - the reply may be in any language. */
+export async function speak(text: string, tag: string): Promise<void> {
   if (!text) return
+  const lang = voiceFor(tag)
   try {
     if (native) {
       await TextToSpeech.stop().catch(() => {})
-      await TextToSpeech.speak({ text, lang: BCP[lang], rate: 1.0, pitch: 1.0, category: 'ambient' })
+      try {
+        await TextToSpeech.speak({ text, lang, rate: 1.0, pitch: 1.0, category: 'ambient' })
+      } catch {
+        // No voice installed for that language - say it in Hindi rather than stay silent.
+        await TextToSpeech.speak({ text, lang: 'hi-IN', rate: 1.0, pitch: 1.0, category: 'ambient' })
+      }
       return
     }
     if (typeof speechSynthesis === 'undefined') return
     speechSynthesis.cancel()
     const u = new SpeechSynthesisUtterance(text)
-    u.lang = BCP[lang]
-    const v = webVoices.find((x) => x.lang === BCP[lang]) ?? webVoices.find((x) => x.lang.startsWith(lang))
+    u.lang = lang
+    const base = lang.split('-')[0]
+    const v = webVoices.find((x) => x.lang === lang) ?? webVoices.find((x) => x.lang.startsWith(base))
     if (v) u.voice = v
     // Resolve only when it has finished, so the caller can listen again straight after.
     await new Promise<void>((done) => {
