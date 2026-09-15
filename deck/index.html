@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Digi संरक्षक AI — PS-1 — Team GLITCH</title>
+<style>
+:root{
+  --bg:#f5f8fc; --card:#fff; --line:#e4eaf3; --text:#0d1b2f; --text2:#3d4d63; --muted:#6b7c93;
+  --sky:#2b7fff; --sky-dark:#1863d6; --sky-tint:#eaf2ff;
+  --safe:#0b8f57; --safe-tint:#e8f8f0; --warn:#b26a00; --warn-tint:#fff5e5;
+  --risk:#d64545; --risk-tint:#fdeded;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
+  font:16px/1.6 Inter,'Noto Sans Devanagari',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased}
+.slide{display:none;min-height:100vh;padding:5vh 7vw 90px;flex-direction:column;justify-content:center;animation:in .3s cubic-bezier(.22,.9,.32,1)}
+.slide.on{display:flex}
+@keyframes in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+h1{font-size:clamp(34px,5.2vw,62px);line-height:1.1;letter-spacing:-.03em;margin:0 0 14px;font-weight:750}
+h2{font-size:clamp(26px,3.4vw,42px);line-height:1.15;letter-spacing:-.025em;margin:0 0 6px;font-weight:700}
+.kicker{font-size:12px;font-weight:750;letter-spacing:.14em;text-transform:uppercase;color:var(--sky-dark);margin-bottom:14px}
+.lede{font-size:clamp(17px,1.9vw,23px);color:var(--text2);max-width:62ch;margin:0 0 22px}
+p{margin:0 0 12px;max-width:68ch}
+.grid{display:grid;gap:14px;margin-top:8px}
+.g2{grid-template-columns:repeat(2,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;
+  box-shadow:0 1px 2px rgba(13,27,47,.04),0 4px 16px rgba(13,27,47,.05)}
+.card b{display:block;font-size:17px;margin-bottom:5px}
+.card span{color:var(--muted);font-size:14.5px}
+.stat{text-align:center;padding:26px 18px}
+.stat .n{font-size:clamp(38px,5.4vw,60px);font-weight:780;letter-spacing:-.03em;line-height:1}
+.stat .l{font-size:13px;color:var(--muted);margin-top:8px;font-weight:600}
+.hero-stat{border-color:#b9e7d1;background:linear-gradient(180deg,var(--safe-tint),#fff 70%)}
+.hero-stat .n{color:var(--safe)}
+.risk-c{border-color:#f4c2c2;background:linear-gradient(180deg,var(--risk-tint),#fff 70%)}
+.warn-c{border-color:#f0d6a4;background:linear-gradient(180deg,var(--warn-tint),#fff 70%)}
+.sky-c{border-color:#cfe1ff;background:linear-gradient(180deg,var(--sky-tint),#fff 70%)}
+ul{margin:6px 0 0;padding-left:22px;max-width:70ch} li{margin-bottom:9px}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
+.step{background:#fff;border:1px solid var(--line);border-radius:999px;padding:9px 16px;font-size:14px;font-weight:600;
+  box-shadow:0 1px 2px rgba(13,27,47,.05)}
+.step.hl{background:var(--sky);border-color:var(--sky-dark);color:#fff}
+.arrow{color:var(--muted);font-size:17px}
+.pill{display:inline-block;background:var(--sky-tint);border:1px solid #cfe1ff;color:var(--sky-dark);
+  border-radius:999px;padding:5px 13px;font-size:13px;font-weight:650;margin:0 6px 6px 0}
+.pill.no{background:var(--risk-tint);border-color:#f4c2c2;color:var(--risk)}
+.pill.yes{background:var(--safe-tint);border-color:#b9e7d1;color:var(--safe)}
+.brandrow{display:flex;align-items:center;gap:16px;margin-bottom:26px}
+.brandrow img{width:74px;height:74px}
+.sub{color:var(--muted);font-size:15px}
+.quote{border-left:4px solid var(--sky);padding:4px 0 4px 18px;font-size:clamp(18px,2.1vw,26px);
+  color:var(--text);font-style:italic;max-width:64ch;margin:10px 0 18px}
+table{border-collapse:collapse;width:100%;max-width:820px;margin-top:10px;font-size:15px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line)}
+th{font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+td.num{font-weight:750;font-variant-numeric:tabular-nums}
+code{background:#eef2f8;border-radius:5px;padding:2px 6px;font-size:.9em}
+.bar{position:fixed;left:0;right:0;bottom:0;height:56px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 7vw;background:rgba(245,248,252,.92);backdrop-filter:blur(8px);border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+.bar b{color:var(--text)}
+.nav button{border:1px solid var(--line);background:#fff;border-radius:9px;padding:6px 12px;cursor:pointer;font:inherit;margin-left:6px}
+.nav button:hover{border-color:var(--sky);color:var(--sky-dark)}
+.notes{position:fixed;left:0;right:0;bottom:56px;max-height:42vh;overflow:auto;padding:18px 7vw;
+  background:#0d1b2f;color:#dbe4f0;font-size:14.5px;line-height:1.65;display:none;border-top:2px solid var(--sky)}
+.notes.on{display:block} .notes b{color:#fff}
+@media print{.slide{display:flex !important;page-break-after:always;min-height:auto;padding:40px}.bar,.notes{display:none}}
+</style>
+</head>
+<body>
+
+<section class="slide on" data-notes="Open with the line, not the title. <b>&ldquo;Har roz koi na koi ek message ki wajah se paisa gawa deta hai.&rdquo;</b> Then: we are Team GLITCH, this is Digi Sanrakshak AI, our answer to PS-1. Keep this slide under 20 seconds.">
+  <div class="brandrow">
+    <img src="logo.png" alt="" onerror="this.style.display='none'" />
+    <div>
+      <div class="kicker">PS-1 &middot; Is this a scam?</div>
+      <h1 style="margin:0">Digi संरक्षक AI</h1>
+      <div class="sub">सुरक्षित भारत, सुरक्षित आप</div>
+    </div>
+  </div>
+  <p class="lede">A decision assistant for the moment someone is about to click, pay, or share an OTP — and for the hour after they already did.</p>
+  <div><span class="pill">Team GLITCH</span><span class="pill">Ayush Kumar</span><span class="pill">Nitish Singh</span><span class="pill">Harsh Kumar</span></div>
+</section>
+
+<section class="slide" data-notes="Do not read the slide. Tell one story: a woman in Bhopal gets an SMS saying her KYC expires today. She has 40 seconds to decide. Google gives her generic advice. Her bank helpline has a queue. <b>The gap is not that guidance does not exist — it is that it is not there at the moment of decision.</b> That sentence is the whole pitch.">
+  <div class="kicker">The problem</div>
+  <h2>The guidance exists. It just isn&rsquo;t there when it matters.</h2>
+  <p class="lede">Digital payments reached Madhya Pradesh faster than the knowledge to use them safely. Fraud now arrives through the same channels people use every day.</p>
+  <div class="grid g3">
+    <div class="card"><b>At the moment of decision</b><span>No reliable way to assess a message, call or app prompt — in the 40 seconds that matter.</span></div>
+    <div class="card"><b>After money has gone</b><span>Most victims do not know 1930 exists, or that a transfer reported in the first hour can sometimes be held.</span></div>
+    <div class="card"><b>Shame delays reporting</b><span>By the time someone admits it, recovery is no longer possible.</span></div>
+  </div>
+</section>
+
+<section class="slide" data-notes="This is the differentiator slide. Say it plainly: <b>anyone can build a scam classifier this weekend.</b> A classifier that says SCAM with no evidence is just another thing asking to be trusted. We built the opposite — it shows evidence, argues against itself, admits what it does not know, and asks one question when it is stuck.">
+  <div class="kicker">What we built</div>
+  <h2>Not a classifier. A decision assistant.</h2>
+  <p class="quote">&ldquo;We are not asking people to trust another AI verdict. We show the evidence, the uncertainty, how to verify it independently, and what to do next.&rdquo;</p>
+  <div class="grid g4">
+    <div class="card"><b>Scam DNA</b><span>Structured attack pattern — impersonation, urgency, requested action, tactics — not a label.</span></div>
+    <div class="card"><b>Legitimacy challenge</b><span>Actively looks for evidence the message is genuine. This is the false-alarm defence.</span></div>
+    <div class="card"><b>Stated uncertainty</b><span>A fourth state: UNCERTAIN. Unknowns are shown, never hidden behind confidence.</span></div>
+    <div class="card"><b>One targeted question</b><span>When evidence is thin, it asks the single question that changes the advice.</span></div>
+  </div>
+</section>
+
+<section class="slide" data-notes="DEMO. Do not narrate the UI. Four moments, in this order, and say what each one proves.<br><br><b>1. Genuine Axis Bank SMS &rarr; LIKELY GENUINE.</b> Lead with this. Everyone can flag a scam; proving we do not cry wolf is what earns trust.<br><b>2. KYC scam &rarr; High risk</b> + Scam DNA + the unknowns panel.<br><b>3. Incomplete input &rarr; Claude asks one question, answer changes the verdict live.</b> This is the soul of the product.<br><b>4. &lsquo;Paisa bhej diya&rsquo; &rarr; golden-hour countdown + Call 1930.</b><br><br>Then hit the Hindi toggle. Finish with Clear session.">
+  <div class="kicker">Live demo</div>
+  <h2>Four moments</h2>
+  <div class="grid g2">
+    <div class="card"><b>1 &nbsp;Genuine bank SMS → Likely genuine</b><span>Proves we do not cry wolf. Zero &ldquo;do not&rdquo; warnings on a real message.</span></div>
+    <div class="card"><b>2 &nbsp;KYC scam → High risk</b><span>Scam DNA, evidence chain, and what we could <i>not</i> establish.</span></div>
+    <div class="card"><b>3 &nbsp;Incomplete input → one question</b><span>The answer changes the verdict live. Conversation as evidence-gathering, not chat.</span></div>
+    <div class="card risk-c"><b>4 &nbsp;&ldquo;Paisa bhej diya&rdquo; → incident mode</b><span>Golden-hour countdown, Call 1930, evidence preservation.</span></div>
+  </div>
+  <div style="margin-top:16px"><span class="pill">हिन्दी toggle</span><span class="pill">WhatsApp → Share → Digi संरक्षक</span><span class="pill">Clear session</span></div>
+</section>
+
+<section class="slide" data-notes="Keep this to 30 seconds. The engineering point worth making: <b>one Claude call, not six.</b> A chained pipeline measured 130 seconds and would have failed the PS&rsquo;s own one-minute criterion on stage. And the action plan is deterministic Python — the model never improvises what to tell a victim, because the PS requires post-incident guidance to match published procedure.">
+  <div class="kicker">How it works</div>
+  <h2>One Claude call. Deterministic where it matters.</h2>
+  <div class="flow">
+    <span class="step">Message / screenshot / call / app</span><span class="arrow">→</span>
+    <span class="step">Redact secrets</span><span class="arrow">→</span>
+    <span class="step hl">One Claude call</span><span class="arrow">→</span>
+    <span class="step">Validate + safety guards</span><span class="arrow">→</span>
+    <span class="step">Deterministic action plan</span><span class="arrow">→</span>
+    <span class="step">Session wiped</span>
+  </div>
+  <div class="grid g3" style="margin-top:22px">
+    <div class="card"><b>Multimodal, one call</b><span>A six-prompt chain measured 130s. One call returns the whole assessment in ~8s.</span></div>
+    <div class="card"><b>Actions are code, not output</b><span>1930 and NCRP steps come from a Python table, so guidance always matches published procedure.</span></div>
+    <div class="card sky-c"><b>Live verification, on demand</b><span>&ldquo;Research this live&rdquo; uses Claude&rsquo;s web search to find the bank&rsquo;s real domain — and cites every page.</span></div>
+  </div>
+</section>
+
+<section class="slide" data-notes="<b>This is the slide that wins.</b> Say the number out loud and pause: <b>zero false alarms on 22 genuine messages</b> — real bank debit alerts, OTP messages, LIC premium reminders, electricity bills, LPG receipts. Then: these are measured, from a script in the repo, not estimated. Invite them to run it. If asked about the one miss, answer honestly — the label is arguably wrong and we left it in rather than retune the test to flatter the score.">
+  <div class="kicker">Measured, not claimed</div>
+  <h2>52 held-out cases &middot; 26 scam / 22 genuine / 4 ambiguous</h2>
+  <div class="grid g4">
+    <div class="card stat hero-stat"><div class="n">0.0%</div><div class="l">FALSE-ALARM RATE<br>on genuine messages</div></div>
+    <div class="card stat"><div class="n">100%</div><div class="l">SCAM RECALL</div></div>
+    <div class="card stat"><div class="n">98.1%</div><div class="l">OVERALL ACCURACY</div></div>
+    <div class="card stat"><div class="n">7.8s</div><div class="l">MEDIAN LATENCY<br>p95 14.8s · target 60s</div></div>
+  </div>
+  <p style="margin-top:18px;color:var(--muted);font-size:14.5px">Reproduce it: <code>cd backend &amp;&amp; python eval.py</code> — 0 errors, whole set in 83 seconds. Numbers in this deck are pasted from that run.</p>
+</section>
+
+<section class="slide" data-notes="This slide is why a partner would actually deploy it. Safety is not prompt text — it is <b>seven rules in guards.py, each with a test.</b> Show the list. The strongest one: the assistant will never ask for an OTP, and that is enforced in code, so no prompt change can break it.">
+  <div class="kicker">Safety &amp; privacy</div>
+  <h2>The rules are code, not prompt text.</h2>
+  <div class="grid g2">
+    <div class="card"><b>Seven guards, one test each</b><span>Never elicits an OTP or PIN · no high risk without evidence · no uncalibrated percentage · no invented source · &ldquo;not found&rdquo; never becomes &ldquo;fraud&rdquo; · no clickable suspicious link · nothing raw reaches the logs.</span></div>
+    <div class="card"><b>Zero retention, enforced</b><span>Sessions live in memory with a 30-minute TTL. Secrets are stripped before the Claude call, all PII before any log line. The service worker caches the shell and never an assessment. A Clear session button proves it live.</span></div>
+    <div class="card"><b>Advisory only</b><span>No automatic reporting, no contact with banks or police on anyone&rsquo;s behalf. Every factual claim resolves to a source with a date.</span></div>
+    <div class="card"><b>Works in the user&rsquo;s language</b><span>Hindi and English throughout, including the hand-translated action tables — not machine-translated at runtime.</span></div>
+  </div>
+</section>
+
+<section class="slide" data-notes="<b>Use this slide if the judges are sharp — it is the credibility slide.</b> Two things we could have faked and did not. A 92% risk score would look great on a gauge and would be invented. An offline &lsquo;RBI list&rsquo; would demo beautifully and would be fiction. In a product whose entire job is exposing false authority, shipping false authority is disqualifying. Say that sentence.">
+  <div class="kicker">What we deliberately did not do</div>
+  <h2>Two things we could have faked.</h2>
+  <div class="grid g2">
+    <div class="card warn-c"><b>No &ldquo;92% scam&rdquo; score</b><span>A precise-looking number with no calibrated evaluation behind it is invented confidence. Our gauge encodes four interpretable states, and a guard strips percentages from model output.</span></div>
+    <div class="card warn-c"><b>No fabricated RBI list</b><span>RBI&rsquo;s DLA directory is a JavaScript viewer with no fetchable export. Rather than ship invented rows we say &ldquo;directory not loaded&rdquo;, link the real page, and fall back to cited live research. A one-command importer is ready.</span></div>
+  </div>
+  <p class="quote" style="margin-top:20px">In a product whose job is exposing false authority, shipping false authority would disqualify it.</p>
+</section>
+
+<section class="slide" data-notes="Close on reach, not features. Same codebase runs as a browser page, an installable PWA and an Android APK — because the message arrives on a phone, not a laptop. The help-desk view is for the PS&rsquo;s secondary users: bank branch and cyber help-desk staff, and family members helping a relative. Then the last line, and stop talking.">
+  <div class="kicker">Reach &amp; deployment</div>
+  <h2>It runs where the message arrives.</h2>
+  <div class="grid g3">
+    <div class="card"><b>One codebase, three surfaces</b><span>Browser, installable PWA, and an Android APK. Capacitor — React + TypeScript, FastAPI, Claude Sonnet 5.</span></div>
+    <div class="card"><b>WhatsApp → Share → Digi संरक्षक</b><span>A forwarded message is assessed the instant it is shared. No copy, no paste, no app switching.</span></div>
+    <div class="card"><b>Help-desk view</b><span>A printable case summary and a 1930 reporting script listing exactly what the operator will ask for — for branch staff and for family helping a relative.</span></div>
+  </div>
+  <p class="quote" style="margin-top:22px">&ldquo;Don&rsquo;t just tell people whether it&rsquo;s a scam. Help them make the next safe decision.&rdquo;</p>
+  <div><span class="pill yes">github.com/harsh-1-code/Zenox2.0</span><span class="pill">MIT licensed</span><span class="pill">21 tests passing</span></div>
+</section>
+
+<div class="bar">
+  <div><b id="num">1</b> / <span id="tot">9</span> &nbsp;&middot;&nbsp; <span id="title">Digi संरक्षक AI</span></div>
+  <div class="nav">
+    <button onclick="go(-1)">←</button>
+    <button onclick="go(1)">→</button>
+    <button onclick="toggleNotes()">Notes (N)</button>
+    <button onclick="document.documentElement.requestFullscreen()">Full screen (F)</button>
+  </div>
+</div>
+<div class="notes" id="notes"></div>
+
+<script>
+const slides = [...document.querySelectorAll('.slide')]
+let i = 0
+document.getElementById('tot').textContent = slides.length
+function render() {
+  slides.forEach((s, n) => s.classList.toggle('on', n === i))
+  document.getElementById('num').textContent = i + 1
+  const h = slides[i].querySelector('h1,h2')
+  document.getElementById('title').textContent = h ? h.textContent : ''
+  document.getElementById('notes').innerHTML = slides[i].dataset.notes || '<i>No notes.</i>'
+  location.hash = i + 1
+  window.scrollTo(0, 0)
+}
+function go(d) { i = Math.min(slides.length - 1, Math.max(0, i + d)); render() }
+function toggleNotes() { document.getElementById('notes').classList.toggle('on') }
+addEventListener('keydown', e => {
+  if (['ArrowRight', ' ', 'PageDown'].includes(e.key)) { e.preventDefault(); go(1) }
+  else if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); go(-1) }
+  else if (e.key === 'n' || e.key === 'N') toggleNotes()
+  else if (e.key === 'f' || e.key === 'F') document.documentElement.requestFullscreen()
+  else if (e.key === 'Home') { i = 0; render() }
+  else if (e.key === 'End') { i = slides.length - 1; render() }
+})
+i = Math.max(0, (parseInt(location.hash.slice(1)) || 1) - 1)
+render()
+</script>
+</body>
+</html>
