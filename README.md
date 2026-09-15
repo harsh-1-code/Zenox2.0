@@ -14,6 +14,16 @@
 
 </p>
 
+<p align="center">
+
+![PS-1](https://img.shields.io/badge/PS--1-Financial%20Safety-0A66FF?style=for-the-badge)
+![Claude](https://img.shields.io/badge/AI-Claude-6B4EFF?style=for-the-badge)
+![PWA](https://img.shields.io/badge/PWA-Installable-16A34A?style=for-the-badge)
+![Privacy](https://img.shields.io/badge/Privacy-Zero%20Retention-059669?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-111827?style=for-the-badge)
+
+</p>
+
 ---
 
 ## 👥 Team GLITCH
@@ -34,95 +44,171 @@
 
 ---
 
-# 🔎 Is this a scam?
+# 🎯 PS-1 — Is this a scam?
 
-## Scam Decision Assistant
+### **Theme: Financial Safety and Consumer Protection**
 
-**PS-1, Conversational Claude Impact Lab (Bhopal)**
+**Primary User:**  
+An individual facing a suspicious message, call or app prompt.
 
-### Financial Safety and Consumer Protection
-
-Digi संरक्षक AI is a web application designed to help an individual make a safer decision when confronted with a suspicious message, call, screenshot, application or link.
-
-The user provides the suspicious content, and the assistant explains:
-
-- **What the interaction is trying to do**
-- **Scam DNA behind the interaction**
-- Evidence suggesting it may be a scam
-- Evidence suggesting it may be legitimate
-- What the system could not establish
-- What the user should do in the **next ten minutes**
-- What to do if money has already been transferred
-- The appropriate reporting route
-
-> **The goal is not only to answer "Is this a scam?" — it is to help the user decide what to do next.**
+**Secondary Users:**  
+Family members assisting relatives; bank branch and cyber help-desk staff.
 
 ---
 
-# 💡 What Problem Are We Solving?
+# 📋 PS-1 Problem Statement
 
-Fraud increasingly arrives through the same digital channels people already use every day:
+## Background
+
+Digital payments and instant credit have reached households in Bhopal and across Madhya Pradesh faster than the knowledge required to use them safely.
+
+Fraud now arrives through the same channels people use every day:
 
 - SMS
-- WhatsApp and messaging applications
+- Messaging apps
 - Voice and video calls
 - App stores
 - Payment links
 - Digital lending applications
-- Social and investment platforms
+- Investment and trading platforms
 
-Common fraud patterns include:
+The common scripts are well documented.
 
-| Fraud Pattern | Typical Approach |
-|---|---|
-| 🏦 **KYC / Bank Impersonation** | Fake expiry or verification warnings |
-| 📦 **Parcel / Customs Scam** | Small payment demands |
-| ⚡ **Utility Scam** | Threat of immediate disconnection |
-| 💼 **Job Scam** | Registration or processing fees |
-| 📈 **Investment Scam** | Fake profits and trading platforms |
-| 👮 **Digital Arrest** | Police / agency impersonation |
-| 💳 **Loan App Scam** | Unregulated apps and extortion |
-| 🌾 **Agriculture / Rural Scam** | Fake credit, insurance or subsidy offers |
+Unregulated instant-loan apps may harvest a borrower's contacts and use them for extortion. Callers may impersonate bank staff over a supposed KYC expiry. Utility-disconnection messages may carry payment links. Parcel or customs-fee messages may demand a small payment. Investment and trading groups may display fabricated profits. Job offers may be conditioned on registration fees. “Digital arrest” calls may impersonate police or investigative agencies.
 
-The problem is not that public warnings do not exist.
-
-The problem is that guidance is often **generic, scattered and difficult to retrieve under pressure**.
-
-### Digi संरक्षक AI focuses on that exact moment of decision.
+In rural areas, similar scripts can be adapted to agricultural credit, insurance and subsidy contexts.
 
 ---
 
-# 🚀 Our Solution
+## Problem Statement
 
-Digi संरक्षक AI converts a suspicious interaction into an understandable decision-support flow.
+> **An individual confronted with a suspicious message or call has no reliable way to assess it at the moment of decision, and no clear path to act if money has already gone.**
+
+Public warnings exist, but they are often generic, scattered and difficult to retrieve under pressure.
+
+Victims may not know about the national reporting channel, the 1930 helpline or the National Cybercrime Reporting Portal, or what steps to take immediately after a financial fraud.
+
+Shame, uncertainty and delay can make the situation worse.
+
+> **The gap is not the absence of guidance. It is the absence of a trusted, immediate, situation-specific assessment.**
+
+---
+
+## Proposed Solution
+
+An assistant that accepts:
+
+- A screenshot
+- A pasted or forwarded message
+- An app name
+- A short description of a call
+
+and returns:
+
+- An assessment of fraud likelihood
+- The specific indicators found
+- An immediate action list for the next ten minutes
+- Recovery and reporting guidance if money has already been transferred
+- Lending-app verification against the Reserve Bank's published list of regulated-entity apps
+- Guidance in the user's language
+- Sources for the rules and facts it relies on
+
+The assistant retains no user data beyond the session.
+
+---
+
+## Key Capabilities
+
+### 1. Multi-modal Intake
+
+Image, text, app name or free-text call description.
+
+### 2. Pattern Recognition
+
+Classification against a curated fraud taxonomy with indicators such as:
+
+- Urgency
+- OTP requests
+- Unofficial links
+- Payment-before-service
+- Impersonation cues
+
+### 3. Legitimacy Signals
+
+Recognition of genuine bank, utility and courier communication patterns to help keep false alarms low.
+
+### 4. Action Guidance
+
+A do-not-do list, immediate actions and a reporting script containing the details a helpline may ask for.
+
+### 5. Post-Incident Procedure
+
+Bank / fraud-team contact, 1930, portal reporting and evidence preservation, with time-sensitive actions clearly flagged.
+
+### 6. Lending-App Check
+
+Lookup against regulated-entity app reference data with the date the data was last updated.
+
+### 7. Zero Retention
+
+No permanent storage of screenshots, numbers or identities beyond the temporary session.
+
+---
+
+## Inputs and Data Sources
+
+The system is designed around:
+
+- A labelled corpus of fraudulent and genuine messages across channels, with roughly half genuine to help the system learn what legitimate communication looks like.
+- The Reserve Bank of India's published list of digital lending apps of regulated entities.
+- Public guidance from the National Cybercrime Reporting Portal, the 1930 helpline and Reserve Bank consumer advisories.
+- A post-incident procedure document validated by a relevant partner such as a police cyber cell, bank fraud team or consumer-rights organisation.
+
+---
+
+## Constraints
+
+- **Advisory only:** no automatic reporting and no contact with banks or authorities on the user's behalf.
+- **No retention:** no permanent storage of personal data.
+- **Synthetic / redacted demo data:** demonstration inputs are synthetic or fully redacted.
+- **Explainable assessments:** every assessment shows its reasons and sources.
+- **Visible uncertainty:** the system states what it cannot establish.
+- **No credential collection:** the system never advises sharing or requests OTPs, passwords, UPI PINs, CVVs or similar secrets.
+- **No unsupported accusation:** a legitimate communication is never labelled fraudulent without stating the indicators found.
+
+---
+
+# 🧍 What This Problem Means in Real Life
+
+### Imagine this.
+
+You receive a message:
+
+> **“Your bank KYC has expired. Update it within 10 minutes or your account will be blocked.”**
+
+There is a link.
+
+There is urgency.
+
+There is fear.
+
+And one question immediately comes to mind:
+
+## **“Click karun ya nahi?”**
+
+At that moment, a user does not need another long awareness article.
+
+They need an answer.
 
 ```text
-Suspicious Message / Screenshot / Call / App / URL
-                         │
-                         ▼
-                  AI Assessment
-                         │
-                         ▼
-                    Scam DNA
-                         │
-                         ▼
-              Evidence + Unknowns
-                         │
-                         ▼
-                  Risk Assessment
-                         │
-              ┌──────────┴──────────┐
-              ▼                     ▼
-        Enough evidence       More context needed
-              │                     │
-              │              Targeted question
-              │                     │
-              └──────────┬──────────┘
-                         ▼
-                Immediate Actions
-                         │
-                         ▼
-              Recovery / Reporting
-                         │
-                         ▼
-                   Sources Shown
+I received a message.
+        ↓
+Is it real?
+        ↓
+Should I click?
+        ↓
+Should I pay?
+        ↓
+Should I share anything?
+        ↓
+What if I already sent the money?
