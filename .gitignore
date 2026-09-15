@@ -9,3 +9,4 @@ dist/
 frontend/public/*.apk
 frontend/android/
 frontend/dist/
+backend/eval_report.json

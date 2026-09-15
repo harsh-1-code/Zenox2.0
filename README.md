@@ -52,6 +52,31 @@ PWA, not a desktop page:
 
 The service worker deliberately caches nothing. Zero retention applies here too.
 
+## Measured results
+
+Run `cd backend && python eval.py`. Last run, 52 held-out cases (26 scam / 22 genuine /
+4 ambiguous), Claude Sonnet 5, instant path with no web research:
+
+| Metric | Result |
+|---|---|
+| Overall accuracy | **98.1%** |
+| Scam recall | **100%** |
+| **False-alarm rate on genuine institutional messages** | **0.0%** |
+| Ambiguous cases correctly left uncommitted | 75% (3/4) |
+| Median latency | 7.8s |
+| p95 latency | 14.8s (PS target: under 60s) |
+| Errors | 0 |
+
+The single miss is `ambiguous-04` ("kindly update your registered mobile number at your
+nearest branch"), returned as LIKELY_LEGIT. That message contains no link, no payment
+request, no urgency and no credential request, so the label is arguably wrong rather than
+the verdict - it is left in the set unchanged rather than retuned to flatter the score.
+
+Evidence fidelity reads 64.2%, but that metric is a crude word-overlap check against the
+input and penalises correct paraphrasing; treat it as a smoke test, not a measurement.
+
+Numbers in any presentation must come from this script, not from memory.
+
 ## Run
 
 ```bash
