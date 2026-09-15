@@ -241,6 +241,39 @@ python scripts/import_rbi_dla.py ~/Downloads/dla_directory.xlsx
 That sets `last_updated` to the import date, which the UI shows next to every result -
 the PS requires the date the list was last updated to be visible.
 
+## Deploy
+
+Backend first — the frontend build needs the API URL baked in.
+
+**1. Backend on Render.** The repo carries `render.yaml`, so New → Blueprint and point it
+at this repo. Set two secrets by hand in the dashboard (they are deliberately not in the
+file): `ANTHROPIC_API_KEY`, and `ALLOWED_ORIGINS` once the Vercel URL exists.
+
+**2. Frontend on Vercel.** New Project → this repo → **Root Directory `frontend`**. Add
+one environment variable:
+
+```
+VITE_API_BASE = https://<your-render-service>.onrender.com
+```
+
+Then go back to Render and put the Vercel URL into `ALLOWED_ORIGINS`, or the browser
+blocks every call on CORS.
+
+**3. Rebuild the APK against the deployed backend**, so the phone no longer depends on a
+laptop:
+
+```bash
+cd frontend
+VITE_API_BASE=https://<your-render-service>.onrender.com npm run build
+npx cap sync android && cd android && ./gradlew assembleDebug
+```
+
+Also update `api_base` in `android/app/src/main/res/values/strings.xml` — the native SMS
+watcher reads it from there.
+
+> Render's free plan sleeps after 15 minutes idle and takes ~50s to wake. Open the health
+> URL a minute before any demo, or the first check will look broken.
+
 ## Run
 
 ```bash

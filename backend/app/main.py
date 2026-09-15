@@ -22,7 +22,10 @@ log = logging.getLogger("sda")
 app = FastAPI(title="Scam Decision Assistant", version="0.1.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=config.ALLOWED_ORIGINS,
+    # The Android build is a webview with a null/capacitor origin rather than a hostname,
+    # so it cannot be named in the list above.
+    allow_origin_regex=r"^(https://.*\.vercel\.app|capacitor://localhost|https://localhost)$",
     allow_methods=["*"],
     allow_headers=["*"],
 )

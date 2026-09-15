@@ -14,3 +14,11 @@ ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-5")
 SESSION_TTL_MIN = int(os.environ.get("SESSION_TTL_MIN", "30"))
 MAX_TOKENS = 3000
+
+# Deployed frontends that may call this API. Comma-separated in the environment; the
+# local dev server is always allowed so nothing breaks when this is unset.
+ALLOWED_ORIGINS = [
+    o.strip()
+    for o in os.environ.get("ALLOWED_ORIGINS", "").split(",")
+    if o.strip()
+] + ["http://localhost:5173", "http://localhost:4173"]

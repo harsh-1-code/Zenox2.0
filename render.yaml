@@ -1,0 +1,22 @@
+# Render blueprint for the backend. The frontend goes to Vercel separately.
+services:
+  - type: web
+    name: digi-sanrakshak-api
+    runtime: python
+    plan: free
+    region: singapore          # closest to Indian users; keeps latency off the demo
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false            # set by hand in the dashboard, never committed
+      - key: ANTHROPIC_MODEL
+        value: claude-sonnet-5
+      - key: SESSION_TTL_MIN
+        value: "30"
+      - key: ALLOWED_ORIGINS
+        sync: false            # the Vercel URL, once it exists
+      - key: PYTHON_VERSION
+        value: "3.11.9"
