@@ -111,3 +111,49 @@ footer { color: var(--muted); font-size: 12px; margin-top: 24px; border-top: 1px
 .research-bar .done { font-size: 12px; color: var(--green); border: 1px solid var(--green); border-radius: 999px; padding: 3px 10px; }
 .web-sources { margin-top: 6px; }
 .web-sources a { color: var(--green); }
+
+.helpdesk pre { background: #0d0f15; border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow-x: auto; font-size: 12px; line-height: 1.5; white-space: pre-wrap; }
+.helpdesk .script-h { margin-top: 18px; }
+.script { background: #0d0f15; border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+.script .say { border-left: 3px solid var(--blue); padding-left: 10px; font-style: italic; }
+.script ol { padding-left: 20px; margin: 6px 0; }
+.script a { color: var(--blue); }
+@media print {
+  body { background: #fff; color: #000; }
+  .card, .intake, .research-bar, footer, header .head-right, .lending { display: none; }
+  .helpdesk { display: block !important; border: none; }
+  .helpdesk pre, .script { background: #fff; color: #000; border-color: #999; }
+}
+
+.tabs { display: flex; gap: 4px; margin-bottom: 12px; border-bottom: 1px solid var(--line); }
+.tab { background: none; border: none; border-bottom: 2px solid transparent; border-radius: 0; color: var(--muted); padding: 8px 14px; }
+.tab.on { color: var(--text); border-bottom-color: var(--blue); font-weight: 600; }
+.dropzone { display: flex; align-items: center; justify-content: center; min-height: 92px; border: 1px dashed var(--line); border-radius: 8px; color: var(--muted); cursor: pointer; text-align: center; padding: 12px; }
+.dropzone:hover { border-color: var(--blue); color: var(--text); }
+.hint { font-size: 12px; color: var(--muted); }
+
+/* --- mobile first: the message arrives on a phone, so the phone is the real target --- */
+@media (max-width: 620px) {
+  .page { padding: 14px 12px 48px; padding-bottom: calc(48px + env(safe-area-inset-bottom)); }
+  header { flex-direction: column; gap: 10px; }
+  header h1 { font-size: 21px; }
+  .head-right { width: 100%; }
+  .head-right button { flex: 1; }
+  .card { padding: 13px; border-radius: 10px; }
+  .tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { padding: 9px 12px; white-space: nowrap; font-size: 14px; }
+  textarea, input, button { font-size: 16px; }  /* 16px stops iOS zoom-on-focus */
+  .row { flex-wrap: wrap; }
+  .primary { width: 100%; margin-left: 0; padding: 13px; }
+  .hint { width: 100%; }
+  .evidence { grid-template-columns: 1fr; gap: 14px; }
+  .dna { grid-template-columns: 1fr 1fr; }
+  .clock { font-size: 34px; }
+  .call { width: 100%; text-align: center; padding: 16px; font-size: 17px; }
+  .examples { font-size: 13px; }
+  .helpdesk pre { font-size: 11px; }
+}
+
+/* Tap targets stay finger-sized regardless of viewport. */
+button, .file, .dropzone, .tab { min-height: 42px; }

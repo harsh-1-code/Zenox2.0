@@ -47,6 +47,7 @@ export interface Verdict {
   summary: string
   actions: Action[]
   researched: boolean
+  lending: LendingResult | null
   sources: { source_id: string; title: string; publisher: string; url: string; last_verified: string }[]
 }
 
@@ -57,4 +58,15 @@ export interface LendingResult {
   source_url: string
   last_updated: string
   note: string
+}
+
+export interface HelpdeskResult {
+  case_summary: string
+  reporting_script: {
+    call: string
+    portal: string
+    say_this: string
+    they_will_ask: string[]
+    reminder: string
+  }
 }

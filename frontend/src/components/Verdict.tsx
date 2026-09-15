@@ -17,6 +17,21 @@ export default function VerdictView({ v, lang }: { v: Verdict; lang: Lang }) {
       <div className="risk-state">{L.risk[v.risk_state]}</div>
       <p className="summary">{v.summary}</p>
 
+      {v.lending && (
+        <div className={`lending-result ${v.lending.status}`}>
+          <strong>Reference list: {v.lending.status.replace('_', ' ')}</strong>
+          {v.lending.matches.map((m) => (
+            <div key={m.app}>
+              {m.app} — {m.entity} ({m.entity_type})
+            </div>
+          ))}
+          {v.lending.note && <p className="note">{v.lending.note}</p>}
+          <p className="src-line">
+            Source: {v.lending.source} · last updated {v.lending.last_updated}
+          </p>
+        </div>
+      )}
+
       <h3>{L.scamDna}</h3>
       <div className="dna">
         {DNA_ROWS.map(([k, label]) => {

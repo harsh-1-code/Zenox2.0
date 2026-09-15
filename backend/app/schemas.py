@@ -54,6 +54,7 @@ class Verdict(Assessment):
     actions: list[Action] = []
     sources: list[dict] = []
     researched: bool = False
+    lending: Optional[dict] = None
 
 
 class AnalyzeRequest(BaseModel):
@@ -71,6 +72,10 @@ class InvestigateRequest(BaseModel):
     answer: str
     lang: Lang = "en"
     deep: bool = False
+
+
+class HelpdeskRequest(BaseModel):
+    verdict: Verdict
 
 
 class LendingRequest(BaseModel):

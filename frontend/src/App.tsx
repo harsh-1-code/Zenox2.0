@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import * as api from './api'
 import ActionPlan from './components/ActionPlan'
 import Evidence from './components/Evidence'
 import GoldenHour from './components/GoldenHour'
+import HelpDesk from './components/HelpDesk'
 import Intake from './components/Intake'
 import LendingCheck from './components/LendingCheck'
 import Question from './components/Question'
@@ -10,7 +11,7 @@ import VerdictView from './components/Verdict'
 import { t } from './i18n'
 import type { Lang, Verdict } from './types'
 
-type Payload = { input_type: string; text?: string; image_b64?: string }
+type Payload = { input_type: string; text?: string; image_b64?: string; app_name?: string }
 
 export default function App() {
   const [lang, setLang] = useState<Lang>('en')
@@ -21,6 +22,19 @@ export default function App() {
   const [err, setErr] = useState<string | null>(null)
   const [cleared, setCleared] = useState(false)
   const L = t(lang)
+  const shared = useRef(false)
+
+  // PWA share target: WhatsApp/SMS "Share -> Scam Check" lands here as ?text=...
+  // Assess it straight away - the person shared it because they want an answer now.
+  useEffect(() => {
+    if (shared.current) return
+    shared.current = true
+    const q = new URLSearchParams(window.location.search)
+    const text = [q.get('title'), q.get('text'), q.get('url')].filter(Boolean).join('\n').trim()
+    if (!text) return
+    window.history.replaceState({}, '', window.location.pathname)
+    onSubmit({ input_type: 'text', text })
+  }, [])
 
   async function run(fn: () => Promise<Verdict>, flag = setBusy) {
     flag(true)
@@ -103,6 +117,7 @@ export default function App() {
           {verdict.user_state === 'money_sent' && <GoldenHour lang={lang} />}
           <ActionPlan v={verdict} lang={lang} />
           <Evidence v={verdict} lang={lang} />
+          <HelpDesk v={verdict} lang={lang} />
         </>
       )}
 

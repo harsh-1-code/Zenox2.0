@@ -36,6 +36,22 @@ itself; that would make the scammer's own channel the verification source.
 
 Advisory only. Nothing is stored beyond the session. MIT licensed.
 
+## It runs on the phone
+
+The scam message arrives on a phone, so the phone is the target. This is an installable
+PWA, not a desktop page:
+
+- **Add to Home Screen** gives it an icon and a standalone window - no Play Store, no APK.
+- **Share target**: in WhatsApp or Messages, hit Share -> Scam Check and the message is
+  assessed immediately. The PS asks for "a pasted or forwarded message"; this is the
+  forwarded half.
+- Screenshot upload uses the native gallery/camera picker.
+- Install and share target need HTTPS. Over plain LAN HTTP the app works fine, but the
+  service worker will not register, so those two are unavailable - use a tunnel
+  (`cloudflared tunnel --url http://localhost:5173`) or a deployed origin.
+
+The service worker deliberately caches nothing. Zero retention applies here too.
+
 ## Run
 
 ```bash
@@ -71,9 +87,13 @@ cd backend && python eval.py
    verdict live.
 4. **"Money already sent"** → incident mode, golden-hour countdown, 1930.
 5. Hindi toggle. 6. Lending-app check (shows source + last-updated date).
-7. **Research this live** on the KYC scam — Claude searches and surfaces the bank's real
+7. **App name** tab — the reference-list result and Claude's assessment appear together.
+8. **Help-desk view** — printable case summary + the 1930 reporting script listing exactly
+   what the operator will ask for. This is PS-1's secondary user: branch and cyber
+   help-desk staff, and family members assisting a relative.
+9. **Research this live** on the KYC scam — Claude searches and surfaces the bank's real
    domain next to the fake one, with citations.
-8. Clear session button — proves zero retention.
+10. Clear session button — proves zero retention.
 
 Measured on this build (Claude Sonnet 5): instant verdict 7-10s, live research 35-45s.
 Both inside the one-minute target; the instant path is what the demo leads with.
@@ -97,6 +117,8 @@ Both inside the one-minute target; the instant path is what the demo leads with.
 | `backend/app/actions.py` | Deterministic action plan. Claude never writes this. |
 | `backend/app/session.py` | In-memory, TTL 30 min. Nothing touches disk. |
 | `backend/app/redact.py` | Secrets stripped before Claude; PII stripped before logs. |
-| `frontend/src/App.tsx` | Whole flow. No router, no state library. |
+| `frontend/src/App.tsx` | Whole flow. No router, no state library. Reads the PWA share target. |
+| `backend/app/helpdesk.py` | Case summary + reporting script for help-desk staff. Pure formatting, no model call. |
+| `frontend/public/manifest.webmanifest` | PWA install + WhatsApp share target. |
 
 Full spec: `PS1_Scam_Decision_Assistant_Implementation_File_Structure.md`

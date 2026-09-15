@@ -4,8 +4,14 @@ import time
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import lending, pipeline, session
-from .schemas import AnalyzeRequest, InvestigateRequest, LendingRequest, Verdict
+from . import helpdesk, lending, pipeline, session
+from .schemas import (
+    AnalyzeRequest,
+    HelpdeskRequest,
+    InvestigateRequest,
+    LendingRequest,
+    Verdict,
+)
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 log = logging.getLogger("sda")
@@ -35,6 +41,19 @@ def analyze(req: AnalyzeRequest) -> Verdict:
 @app.post("/api/investigate", response_model=Verdict)
 def investigate(req: InvestigateRequest) -> Verdict:
     return pipeline.reassess(req.session_id, req.answer, req.lang, req.deep)
+
+
+@app.post("/api/helpdesk", response_model=None)
+def helpdesk_view(req: HelpdeskRequest) -> dict:
+    """Case summary + reporting script for a verdict the caller already has.
+
+    Takes the Verdict back rather than reading the session, so a help-desk operator can
+    produce the handout without the assessment being re-run or re-stored.
+    """
+    return {
+        "case_summary": helpdesk.case_summary(req.verdict),
+        "reporting_script": helpdesk.reporting_script(req.verdict),
+    }
 
 
 @app.post("/api/lending-app/check")

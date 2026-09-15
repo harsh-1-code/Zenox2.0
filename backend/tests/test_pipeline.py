@@ -108,3 +108,38 @@ def test_unknown_app_is_not_found_never_fraud():
 def test_result_carries_source_and_date():
     r = lending.check("SAMPLE-A")
     assert r["status"] == "MATCHED" and r["last_updated"] and r["source"]
+
+
+# --- help-desk output --------------------------------------------------------
+
+def _verdict(**kw):
+    from app.schemas import Verdict
+    base = dict(scam_dna=ScamDNA(claim_type="kyc_expiry"), risk_state="HIGH_RISK",
+                summary="test", session_id="s1")
+    v = Verdict(**{**base, **kw})
+    v.actions = actions.build(v)
+    return v
+
+
+def test_case_summary_is_printable_and_carries_the_verdict():
+    from app import helpdesk
+    out = helpdesk.case_summary(_verdict(user_state="money_sent"))
+    assert "HIGH RISK" in out and "kyc_expiry" in out
+    assert "ACTION GIVEN TO THE PERSON" in out
+    assert "1930" in out
+
+
+def test_reporting_script_asks_for_more_when_money_is_gone():
+    from app import helpdesk
+    gone = helpdesk.reporting_script(_verdict(user_state="money_sent"))
+    safe = helpdesk.reporting_script(_verdict(user_state="nothing_done"))
+    assert len(gone["they_will_ask"]) > len(safe["they_will_ask"])
+    assert "1930" in gone["call"]
+
+
+def test_case_summary_never_leaks_a_secret():
+    from app import helpdesk
+    from app.schemas import Evidence
+    v = _verdict(scam_evidence=[Evidence(type="OBSERVED",
+                                         statement=redact.scrub_secrets("OTP 448192 was asked for"))])
+    assert "448192" not in helpdesk.case_summary(v)

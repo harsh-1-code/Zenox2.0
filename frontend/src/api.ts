@@ -1,4 +1,4 @@
-import type { Lang, LendingResult, Verdict } from './types'
+import type { HelpdeskResult, Lang, LendingResult, Verdict } from './types'
 
 async function post<T>(url: string, body: unknown): Promise<T> {
   const r = await fetch(url, {
@@ -22,6 +22,9 @@ export const analyze = (p: {
 
 export const investigate = (session_id: string, answer: string, lang: Lang) =>
   post<Verdict>('/api/investigate', { session_id, answer, lang })
+
+export const helpdesk = (verdict: Verdict) =>
+  post<HelpdeskResult>('/api/helpdesk', { verdict })
 
 export const checkLendingApp = (app_name: string) =>
   post<LendingResult>('/api/lending-app/check', { app_name })
