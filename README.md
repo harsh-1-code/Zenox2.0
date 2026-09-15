@@ -1,6 +1,7 @@
 # Digi संरक्षक AI
 
-<img width="326" height="319" alt="Screenshot 2026-09-15 at 12 43 37 PM" src="https://github.com/user-attachments/assets/e75a866d-6032-4955-be06-09ce96397bb2" />
+<img width="1254" height="1254" alt="08b9a51e-ba3d-49fa-a152-6bbbcbee112e" src="https://github.com/user-attachments/assets/5f8e7021-1bb4-4452-872e-929d66a12240" />
+
 
 Team GLITCH 
 
@@ -39,6 +40,7 @@ itself; that would make the scammer's own channel the verification source.
 Advisory only. Nothing is stored beyond the session. MIT licensed.
 
 ## It runs on the phone
+
 
 The scam message arrives on a phone, so the phone is the target. This is an installable
 PWA, not a desktop page:
