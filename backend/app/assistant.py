@@ -56,12 +56,31 @@ def reply(message: str, lang: str, session_id: Optional[str], history: list) -> 
         {"role": "user", "content": f"CURRENT SCREEN CONTEXT:\n{_context(session_id)}\n\nTHEY SAID:\n{safe}"}
     )
 
-    try:
+    def attempt() -> AssistantReply:
         r = _get_client().messages.create(
             model=ANTHROPIC_MODEL, max_tokens=MAX_TOKENS, system=system, messages=turns
         )
         raw = "".join(b.text for b in r.content if b.type == "text")
-        return AssistantReply(**json.loads(raw[raw.find("{") : raw.rfind("}") + 1]))
+        start, end = raw.find("{"), raw.rfind("}")
+        if start < 0 or end < start:
+            raise ValueError("no JSON object in reply")
+        data = json.loads(raw[start : end + 1])
+        # An action we do not know is not worth losing the whole reply over - the words
+        # matter more than the routing.
+        if data.get("action") not in {
+            "none", "open_message", "open_screenshot", "open_call",
+            "open_app", "open_emergency", "run_check",
+        }:
+            data["action"] = "none"
+        return AssistantReply(**data)
+
+    try:
+        try:
+            return attempt()
+        except (ValidationError, json.JSONDecodeError, ValueError):
+            # One malformed reply is usually a one-off; retry before giving up, the way
+            # the assessment pipeline does.
+            return attempt()
     except (ValidationError, json.JSONDecodeError, ValueError):
         return AssistantReply(
             say=(

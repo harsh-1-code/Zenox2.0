@@ -115,11 +115,13 @@ export async function listen(lang: VLang): Promise<string | null> {
     try {
       const r = await SpeechRecognition.start({
         language: BCP[lang],
-        maxResults: 1,
+        maxResults: 5,        // the first guess is often worse than a later one
         partialResults: false,
         popup: false,
       })
-      return r?.matches?.[0]?.trim() || null
+      const m = (r?.matches ?? []).map((x) => String(x).trim()).filter(Boolean)
+      // Prefer the longest alternative: short ones are usually a clipped first word.
+      return m.sort((a, b) => b.length - a.length)[0] || null
     } catch {
       return null
     }
@@ -164,6 +166,10 @@ export async function stopListening(): Promise<void> {
  * Returns a stop function.
  */
 export async function meter(onLevel: (v: number) => void): Promise<(() => void) | null> {
+  // On Android the native recogniser owns the microphone exclusively. Opening a second
+  // capture next to it does not just fail - it degrades what the recogniser hears, which
+  // is worse than having no level meter at all. The orb keeps its own motion there.
+  if (native) return null
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
     const Ctx = (window as any).AudioContext ?? (window as any).webkitAudioContext

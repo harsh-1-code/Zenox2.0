@@ -35,6 +35,10 @@ export default function VoiceAgent({
   const [typed, setTyped] = useState('')
   const [muted, setMuted] = useState(false)
   const [level, setLevel] = useState(0)
+  const [hasLevel, setHasLevel] = useState(false)
+  // Which language the recogniser listens in. Android cannot auto-detect, and listening
+  // in the wrong one transliterates speech into gibberish - so it is an explicit choice.
+  const [sttLang, setSttLang] = useState<Lang>(lang)
   const [keyboard, setKeyboard] = useState(false)
   const L = t(lang)
 
@@ -42,6 +46,7 @@ export default function VoiceAgent({
   const running = useRef(false)
   const turnsRef = useRef<Turn[]>([])
   const stopMeter = useRef<(() => void) | null>(null)
+  const misses = useRef(0)
   turnsRef.current = turns
 
   useEffect(() => {
@@ -98,17 +103,26 @@ export default function VoiceAgent({
       // Real amplitude drives the orb. If the recogniser holds the mic exclusively this
       // returns null and the orb keeps its own motion - never a blocker.
       stopMeter.current = await voice.meter(setLevel)
-      const heard = await voice.listen(lang)
+      setHasLevel(!!stopMeter.current)
+      const heard = await voice.listen(sttLang)
       stopMeter.current?.()
       stopMeter.current = null
       setLevel(0)
       if (!running.current) break
       if (!heard) {
-        setPhase('idle')
-        running.current = false
-        setHandsFree(false)
-        break
+        // One miss is normal - background noise, a short pause. Two in a row means it is
+        // not working, and asking them to repeat a third time is just nagging.
+        misses.current += 1
+        if (misses.current >= 2) {
+          setTurns((t) => [...t, { role: 'assistant', text: L.notHearing }])
+          setPhase('idle')
+          running.current = false
+          setHandsFree(false)
+          break
+        }
+        continue
       }
+      misses.current = 0
       const reply = await exchange(heard)
       if (!running.current) break
       // Once the check is running, the answer is on the main screen, not in here.
@@ -120,7 +134,7 @@ export default function VoiceAgent({
       }
     }
     setPhase('idle')
-  }, [lang, exchange])
+  }, [sttLang, exchange, L.notHearing])
 
   async function tapOrb() {
     if (muted) return
@@ -130,6 +144,7 @@ export default function VoiceAgent({
       setTurns((t) => [...t, { role: 'assistant', text: L.micDenied }])
       return
     }
+    misses.current = 0
     running.current = true
     setHandsFree(true)
     loop()
@@ -175,7 +190,7 @@ export default function VoiceAgent({
       <div className="vmode-stage">
         <div className="vmode-controls">
           <button
-            className={`orb ${orbPhase}`}
+            className={`orb ${orbPhase} ${hasLevel ? '' : 'no-level'}`}
             style={{ ['--level' as any]: level.toFixed(3) }}
             onClick={tapOrb}
             aria-label={phase === 'idle' ? L.tapToSpeak : L.stopLabel}
@@ -204,6 +219,16 @@ export default function VoiceAgent({
         </div>
 
         <div className="vmode-status" aria-live="polite">{status}</div>
+
+        <div className="stt-pick" role="group" aria-label={L.speakIn}>
+          <span>{L.speakIn}</span>
+          <button className={sttLang === 'hi' ? 'on' : ''} onClick={() => setSttLang('hi')}>
+            हिन्दी
+          </button>
+          <button className={sttLang === 'en' ? 'on' : ''} onClick={() => setSttLang('en')}>
+            English
+          </button>
+        </div>
 
         <div className="vmode-transcript">
           {lastUser && phase !== 'listening' && <p className="said">&ldquo;{lastUser.text}&rdquo;</p>}

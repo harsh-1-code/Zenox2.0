@@ -552,7 +552,15 @@ footer { color: var(--muted); font-size: 11.5px; margin-top: 22px; border-top: 1
 .orb.idle .orb-blob { animation-duration: 12s, 14s, 16s, 18s; }
 .orb.idle { filter: saturate(0.95); }
 
+/* With a real level the orb tracks the voice. Without one (native, where the recogniser
+   owns the mic) it breathes on its own - alive, but not pretending to measure anything. */
 .orb.listening { transform: scale(calc(1.02 + var(--level) * 0.22)); }
+.orb.listening.no-level { animation: breathe 1.9s ease-in-out infinite; }
+@keyframes breathe {
+  0%, 100% { transform: scale(1.02); }
+  50%      { transform: scale(1.13); }
+}
+.orb.listening.no-level .orb-blob { animation-duration: 2.4s, 2.7s, 3s, 3.3s; }
 .orb.listening .orb-blob {
   filter: blur(calc(20px + var(--level) * 16px));
   animation-duration: 3.4s, 3.8s, 4.2s, 4.6s;
@@ -625,3 +633,14 @@ footer { color: var(--muted); font-size: 11.5px; margin-top: 22px; border-top: 1
 @media (prefers-reduced-motion: reduce) {
   .orb-blob, .bars i, .wave i, .orb-spin { animation: none !important; }
 }
+
+/* Which language the recogniser listens in - separate from the UI toggle, because the
+   person may read the app in Hindi and still want to speak English. */
+.stt-pick { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 12px; }
+.stt-pick > span { font-size: 12px; color: var(--muted); margin-right: 2px; }
+.stt-pick button {
+  min-height: 32px; padding: 5px 13px; border-radius: 999px;
+  font-size: 13px; font-weight: 600; color: var(--muted);
+  border: 1px solid var(--line); background: #fff;
+}
+.stt-pick button.on { background: var(--sky); border-color: var(--sky-dark); color: #fff; }
