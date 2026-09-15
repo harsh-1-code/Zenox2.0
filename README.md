@@ -1,11 +1,15 @@
 # Digi संरक्षक AI
 
+<img width="326" height="319" alt="Screenshot 2026-09-15 at 12 43 37 PM" src="https://github.com/user-attachments/assets/e75a866d-6032-4955-be06-09ce96397bb2" />
 
 Team GLITCH 
 
 Ayush Kumar
+
 Nitish Singh
+
 Harsh Kumar
+
 
 
 
