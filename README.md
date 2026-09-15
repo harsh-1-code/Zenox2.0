@@ -129,220 +129,271 @@ Suspicious Message / Screenshot / Call / App / URL
 
 ---
 
-# 🛠️ Build, run and verify
+# 🔗 Try it
 
-## It runs on the phone
+| | |
+|---|---|
+| **Web / PWA** | **https://zenox2-0.vercel.app** — open it, or Add to Home Screen for the app experience |
+| **Android APK** | **https://digi-sanrakshak-api.onrender.com/api/download/apk** |
+| **API** | https://digi-sanrakshak-api.onrender.com |
 
-The scam message arrives on a phone, so the phone is the target. This is an installable
-PWA, not a desktop page:
+Nothing needs to be installed to try it. The APK adds one thing the web cannot do:
+watching incoming SMS in the background.
 
-- **Add to Home Screen** gives it an icon and a standalone window - no Play Store, no APK.
-- **Share target**: in WhatsApp or Messages, hit Share -> Scam Check and the message is
-  assessed immediately. The PS asks for "a pasted or forwarded message"; this is the
-  forwarded half.
-- Screenshot upload uses the native gallery/camera picker.
-- Install and share target need HTTPS. Over plain LAN HTTP the app works fine, but the
-  service worker will not register, so those two are unavailable - use a tunnel
-  (`cloudflared tunnel --url http://localhost:5173`) or a deployed origin.
+> The API is on Render's free plan, which sleeps after 15 minutes idle and takes ~50s to
+> wake. Open `/api/health` first if the first check seems slow.
 
-The service worker deliberately caches nothing. Zero retention applies here too.
+---
 
-## Measured results
+# 📊 Measured, not claimed
 
-Run `cd backend && python eval.py`. Last run, 52 held-out cases (26 scam / 22 genuine /
-4 ambiguous), Claude Sonnet 5, instant path with no web research:
+Run it yourself: `cd backend && python eval.py`. Last run — 52 held-out cases
+(26 scam / 22 genuine / 4 ambiguous), Claude Sonnet 5, instant path:
 
 | Metric | Result |
 |---|---|
-| Overall accuracy | **98.1%** |
-| Scam recall | **100%** |
-| **False-alarm rate on genuine institutional messages** | **0.0%** |
-| Ambiguous cases correctly left uncommitted | 75% (3/4) |
-| Median latency | 7.8s |
-| p95 latency | 14.8s (PS target: under 60s) |
+| **False-alarm rate on genuine institutional messages** | **0.0 %** |
+| Scam recall | 100 % |
+| Overall accuracy | 98.1 % |
+| Ambiguous cases correctly left uncommitted | 75 % (3/4) |
+| Median latency | 7.8 s |
+| p95 latency | 14.8 s *(PS target: under 60 s)* |
 | Errors | 0 |
 
+The false-alarm number is the one that matters. Twenty-two genuine messages — real bank
+debit alerts, OTP messages, LIC premium reminders, electricity bills, LPG receipts — and
+not one was wrongly escalated. Catching scams is easy; not crying wolf is what makes a
+safety tool worth opening.
+
 The single miss is `ambiguous-04` ("kindly update your registered mobile number at your
-nearest branch"), returned as LIKELY_LEGIT. That message contains no link, no payment
-request, no urgency and no credential request, so the label is arguably wrong rather than
-the verdict - it is left in the set unchanged rather than retuned to flatter the score.
+nearest branch"), returned as LIKELY_LEGIT. It has no link, no payment request, no urgency
+and no credential ask, so the label is arguably wrong rather than the verdict. It is left
+in the set unchanged rather than retuned to flatter the score.
 
-Evidence fidelity reads 64.2%, but that metric is a crude word-overlap check against the
-input and penalises correct paraphrasing; treat it as a smoke test, not a measurement.
+Evidence fidelity reads 64.2 %, but that metric is a crude word-overlap check that
+penalises correct paraphrasing. Treat it as a smoke test, not a measurement.
 
-Numbers in any presentation must come from this script, not from memory.
+---
 
-## It watches incoming SMS
+# ✨ What it does
 
-With the app closed, an arriving SMS is checked as it lands and a warning appears before
-the person opens it — the moment of decision starts when the message arrives, not when
-someone remembers an app exists.
+**Four ways in.** A pasted message, a screenshot, a description of a call in your own
+words, or an app name. A call is *described*, not recorded — a browser cannot reach
+telephony audio and the PS asks for a description.
 
-**The on-arrival check never touches the network.** `SmsWatcher.java` runs a local pattern
-score (unrequested link, shortener, urgency, credential ask, payment demand, install
-request) and only raises a notification when several independent signals coincide. The
-message body leaves the device only if the person **taps** that warning, which routes it
-through the ordinary share path into the full assessment.
+**Scam DNA.** Not a label but a structured read of the attack: who it impersonates, the
+pressure applied, what it wants you to do, the manipulation used, the claim type.
 
-That split is deliberate. Silently uploading every SMS someone receives would be
-indefensible in a product whose promise is that nothing is stored, and the PS asks for an
-advisory assistant, not a background collector. The local check is a doorbell, not a
-verdict: it decides only whether something is worth your attention, and every real
-judgement still arrives with evidence and sources from the full check.
+**Evidence on both sides.** Risk indicators *and* signs it may be genuine, plus an honest
+list of what could not be established. The legitimacy side is the false-alarm defence.
 
-A genuine bank SMS scores zero and stays silent.
+**One question when it is stuck.** Where evidence is thin it asks the single question that
+changes the advice, and the answer updates the verdict. No interrogation.
 
-## The in-app voice guide
+**Research this live.** An explicit second step that uses Claude's web search to find the
+institution's real domain and public reports about a link or app — citing every page it
+read. It never opens the suspicious link itself; that would make the scammer's own channel
+the verification source.
 
-Tap **पूछें / Ask**, say what happened, and it answers out loud and drives the app for
-you — opens the right card, or runs the check itself, or jumps to emergency mode.
+**Golden hour.** If money has gone, it switches to incident mode with a countdown, a Call
+1930 button and the NCRP portal.
 
-- **Hands-free.** Tap the orb once: it listens, answers aloud, then listens again. Tap
-  again at any point to interrupt — barge-in matters more than animation when someone is
-  mid-panic. It asks one follow-up question per turn and runs the actual check once it
-  has enough, instead of interviewing forever.
-- The orb is **pure CSS** — four blurred colour lobes drifting around a white core, with
-  distinct idle / listening / thinking / speaking / muted states. No Lottie, no canvas,
-  nothing extra to download on a cheap phone, and `prefers-reduced-motion` turns it off.
-- Layout follows the reference: **mic · orb · keyboard** across the middle with one status
-  line under it. Mute drains the orb rather than hiding it.
-- Speech in and out uses the **native Android engines** through Capacitor. The system
-  WebView cannot be relied on for recognition, so the browser's Web Speech API is only
-  the fallback path.
-- Typing always works. If the device has no recogniser, or the microphone permission is
-  refused, the panel stays fully usable — speech is an enhancement, never a requirement.
-- It runs on a separate, small Claude call (`prompts/assistant.md`) that knows every
-  feature of the app and is told its answers will be spoken, so replies stay to a few
-  sentences.
-- **It never produces a verdict itself.** It routes the person to the check that does,
-  so every verdict still arrives with evidence attached. It also refuses to hear an OTP:
-  secrets are stripped from the transcript before the model sees them.
+**Help-desk view.** A printable case summary and a reporting script listing exactly what
+the 1930 operator will ask for — for branch staff and for family helping a relative, the
+PS's secondary users.
 
-## The RBI lending-app directory
+**A voice guide that speaks your language.** Tap the orb and talk. It knows every feature,
+can drive the app for you, and answers in whatever language you used — Bhojpuri, Marathi,
+Tamil, Bengali, Telugu, romanised Hinglish, English. It never issues a verdict itself; it
+routes you to the check that does, so every verdict still arrives with evidence.
 
-RBI has run a public directory of Digital Lending Apps deployed by its regulated
-entities since 01-07-2025 (`rbi.org.in` -> Citizen's Corner -> "DLA's deployed by
-Regulated Entities"). It is served through a JavaScript report viewer, so it cannot be
-fetched programmatically - the export is a manual step.
+**Background SMS warning.** With the app closed, an arriving SMS is checked as it lands and
+a warning appears before you open it.
 
-**This build ships with that list empty, deliberately.** A fabricated "RBI list" inside
-a fraud-safety tool is the same false authority the product exists to expose. Until it
-is imported the app says `DIRECTORY NOT LOADED`, links the user to the authoritative
-page, and falls back to live web research for app-name questions - which is enforced in
-`pipeline.py`, not in the UI, so every client gets it.
+---
 
-To load it:
+# 🔒 Safety and privacy
+
+**The rules are code, not prompt text.** `guards.py` holds seven of them, each with a test:
+never elicits an OTP or PIN · no high risk without evidence to show for it · no
+uncalibrated percentage · no invented source · "not found" never becomes "fraud" · no
+clickable suspicious link · nothing raw reaches the logs.
+
+**Zero retention, enforced.** Sessions live in memory with a 30-minute TTL. Secrets are
+stripped before the Claude call and all PII before any log line. The service worker caches
+the app shell and never an assessment. A Clear session button proves it live.
+
+**The SMS check never uploads anything.** `SmsWatcher.java` runs a local pattern score on
+arrival — no network at all. The message leaves the device only when you *tap* the warning,
+which routes it through the ordinary share path. Silently uploading every SMS someone
+receives would be indefensible in a product whose promise is that nothing is stored.
+
+**Advisory only.** No automatic reporting, no contact with banks or police on anyone's
+behalf. Every factual claim resolves to a source with a date.
+
+---
+
+# 🚫 Two things we could have faked
+
+**No "92 % scam" score.** A precise-looking number with no calibrated evaluation behind it
+is invented confidence. The gauge encodes four interpretable states and a guard strips
+percentages from model output.
+
+**No fabricated RBI list.** RBI's Digital Lending Apps directory (`rbi.org.in` → Citizen's
+Corner, live since 01-07-2025) is served through a JavaScript report viewer with no
+fetchable export. Rather than ship invented rows, the app says `DIRECTORY NOT LOADED`,
+links the authoritative page, and falls back to cited live research. A one-command
+importer is ready for when the export exists:
 
 ```bash
-# export the directory to CSV or Excel from the RBI viewer, then
 python scripts/import_rbi_dla.py ~/Downloads/dla_directory.xlsx
 ```
 
-That sets `last_updated` to the import date, which the UI shows next to every result -
-the PS requires the date the list was last updated to be visible.
+> In a product whose job is exposing false authority, shipping false authority would
+> disqualify it.
 
-## Deploy
+---
 
-Backend first — the frontend build needs the API URL baked in.
-
-**1. Backend on Render.** The repo carries `render.yaml`, so New → Blueprint and point it
-at this repo. Set two secrets by hand in the dashboard (they are deliberately not in the
-file): `ANTHROPIC_API_KEY`, and `ALLOWED_ORIGINS` once the Vercel URL exists.
-
-**2. Frontend on Vercel.** New Project → this repo → **Root Directory `frontend`**. Add
-one environment variable:
+# 🧱 Architecture
 
 ```
-VITE_API_BASE = https://<your-render-service>.onrender.com
+Message · Screenshot · Call description · App name
+                      │
+              redact secrets
+                      │
+            ONE Claude call  ──── optional: web search, cited
+                      │
+        validate → seven safety guards
+                      │
+        ┌─────────────┴─────────────┐
+   enough evidence            needs context
+        │                           │
+        │                    one targeted question
+        │                           │
+        └─────────────┬─────────────┘
+                      │
+     deterministic action plan (Python, not model output)
+                      │
+        verdict · evidence · unknowns · sources
+                      │
+                session wiped
 ```
 
-Then go back to Render and put the Vercel URL into `ALLOWED_ORIGINS`, or the browser
-blocks every call on CORS.
+**One Claude call, not six.** A chained six-prompt pipeline measured 130s and would have
+failed the PS's own one-minute criterion on stage. One call returns the whole assessment in
+about eight seconds.
 
-**3. Rebuild the APK against the deployed backend**, so the phone no longer depends on a
-laptop:
+**Actions are code.** The 1930 and NCRP steps come from a Python table, so post-incident
+guidance always matches published procedure and the model never improvises what to tell a
+victim.
+
+**One codebase, three surfaces.** Capacitor wraps the same React app as a browser page, an
+installable PWA, and an Android APK.
+
+| Layer | Stack |
+|---|---|
+| Frontend | React 18 · TypeScript · Vite (no router, no state library) |
+| Mobile | Capacitor 8 · one Java activity · native speech + SMS receiver |
+| Backend | FastAPI · Pydantic · in-memory sessions |
+| Model | Claude Sonnet 5 with the `web_search` server tool |
+| Hosting | Vercel (web) · Render (API) |
+
+---
+
+# 🛠️ Run it locally
 
 ```bash
-cd frontend
-VITE_API_BASE=https://<your-render-service>.onrender.com npm run build
-npx cap sync android && cd android && ./gradlew assembleDebug
-```
-
-Also update `api_base` in `android/app/src/main/res/values/strings.xml` — the native SMS
-watcher reads it from there.
-
-> Render's free plan sleeps after 15 minutes idle and takes ~50s to wake. Open the health
-> URL a minute before any demo, or the first check will look broken.
-
-## Run
-
-```bash
-cp .env.example .env        # put your ANTHROPIC_API_KEY in it
+cp .env.example .env            # add your ANTHROPIC_API_KEY
 
 cd backend
 pip install -r requirements.txt
-uvicorn app.main:app --reload            # http://localhost:8000
+uvicorn app.main:app --reload   # http://localhost:8000
 
 cd ../frontend
 npm install
-npm run dev                              # http://localhost:5173
+npm run dev                     # http://localhost:5173
 ```
 
-Tests (no API key needed):
+Tests — no API key needed, nothing here calls Claude:
 
 ```bash
-cd backend && python -m pytest -q
+cd backend && python -m pytest -q      # 21 passing
 ```
 
-Evaluation (needs API key, calls Claude once per case):
+Evaluation — needs a key, one Claude call per case, runs six-wide in ~83s:
 
 ```bash
 cd backend && python eval.py
 ```
 
-## Demo order
+## Android build
 
-1. **Genuine bank SMS** → LIKELY_LEGIT. Show that it looks for legitimacy evidence
-   instead of flagging everything.
-2. **KYC / digital arrest scam** → Scam DNA, evidence chain, unknowns panel.
-3. **Incomplete input** → Claude asks one targeted question; the answer changes the
-   verdict live.
-4. **"Money already sent"** → incident mode, golden-hour countdown, 1930.
-5. Hindi toggle. 6. Lending-app check (shows source + last-updated date).
-7. **App name** tab — the reference-list result and Claude's assessment appear together.
-8. **Help-desk view** — printable case summary + the 1930 reporting script listing exactly
-   what the operator will ask for. This is PS-1's secondary user: branch and cyber
-   help-desk staff, and family members assisting a relative.
-9. **Research this live** on the KYC scam — Claude searches and surfaces the bank's real
-   domain next to the fake one, with citations.
-10. Clear session button — proves zero retention.
+```bash
+cd frontend
+VITE_API_BASE=https://digi-sanrakshak-api.onrender.com npm run build
+npx cap sync android
+cd android && ./gradlew assembleDebug
+../../scripts/publish_apk.sh    # so the download link is not a version behind
+```
 
-Measured on this build (Claude Sonnet 5): instant verdict 7-10s, live research 35-45s.
-Both inside the one-minute target; the instant path is what the demo leads with.
+> Gradle 8.14 cannot parse Java 25 class files, which Android Studio's bundled JDK
+> produces. JDK 21 is pinned in `gradle.properties`.
 
-## Before the demo
+---
 
-- [ ] Import the RBI directory (see below). The app ships with it empty, on purpose.
-- [ ] Fill in `last_verified` dates in `backend/data/sources.json`.
-- [ ] Expand `backend/data/cases.json` to ~50 cases, roughly half genuine.
-- [ ] Run `python eval.py` and paste the real numbers into the deck. Do not invent them.
-- [ ] Run the full demo 10 times on the judging-day machine.
+# 🚀 Deploy
 
-## Layout
+Backend first — the frontend build bakes the API URL in.
 
-| Path | What it owns |
+1. **Render** → New → Blueprint → this repo. `render.yaml` is picked up automatically. Set
+   `ANTHROPIC_API_KEY` by hand; it is deliberately not in the file.
+2. **Vercel** → New Project → this repo → **Root Directory `frontend`** → add
+   `VITE_API_BASE = https://<your-render-service>.onrender.com`.
+3. Back on Render, set `ALLOWED_ORIGINS` to the Vercel URL.
+4. Rebuild the APK against the deployed backend (above) so the phone needs no laptop.
+
+---
+
+# 🎬 Demo order
+
+1. **Genuine bank SMS → Likely genuine.** Lead with this. Everyone can flag a scam; proving
+   we do not cry wolf is what earns trust. Zero warnings on a real message.
+2. **KYC scam → High risk.** Scam DNA, evidence chain, and what we could *not* establish.
+3. **Incomplete input → one question.** The answer changes the verdict live.
+4. **"Paisa bhej diya" → incident mode.** Golden-hour countdown, Call 1930.
+5. **Hindi toggle**, then the **voice guide** — speak to it in any language.
+6. **Research this live** on the KYC scam — the bank's real domain, with citations.
+7. **Send an SMS to the demo phone** — the warning appears with the app closed.
+8. **Clear session** — proves zero retention.
+
+**Before the demo**
+
+- [ ] Wake the API: open `/api/health` a minute beforehand.
+- [ ] Grant SMS + Notification permission on the demo phone. Android silently refuses SMS
+      access to browser-sideloaded apps; `adb install -g` or Settings → Permissions.
+- [ ] Hand judges the **PWA link**, not the APK — sideloading hits Play Protect and
+      unknown-sources prompts, and stage time is not the place for that.
+
+---
+
+# 📁 Layout
+
+| Path | Owns |
 |---|---|
-| `backend/app/schemas.py` | Every data shape. Single source of truth; `frontend/src/types.ts` mirrors it. |
-| `backend/app/pipeline.py` | redact → **one** Claude call → validate → guards → actions. |
-| `backend/prompts/assess.md` | The one prompt. Returns the whole assessment as JSON. |
-| `backend/app/guards.py` | Safety rules as code, not prompt text. Each has a test. |
+| `backend/app/schemas.py` | Every data shape. `frontend/src/types.ts` mirrors it. |
+| `backend/app/pipeline.py` | redact → one Claude call → validate → guards → actions. |
+| `backend/app/guards.py` | Safety rules as code. Each has a test. |
 | `backend/app/actions.py` | Deterministic action plan. Claude never writes this. |
+| `backend/app/assistant.py` | The voice guide's Claude call — short spoken answers. |
+| `backend/app/helpdesk.py` | Case summary + 1930 reporting script. |
 | `backend/app/session.py` | In-memory, TTL 30 min. Nothing touches disk. |
-| `backend/app/redact.py` | Secrets stripped before Claude; PII stripped before logs. |
-| `frontend/src/App.tsx` | Whole flow. No router, no state library. Reads the PWA share target. |
-| `backend/app/assistant.py` | The voice guide's Claude call. Short spoken answers, app-wide knowledge, same safety rules. |
-| `frontend/src/voice.ts` | One speech interface over native Capacitor plugins and the Web Speech API. |
-| `backend/app/helpdesk.py` | Case summary + reporting script for help-desk staff. Pure formatting, no model call. |
-| `frontend/public/manifest.webmanifest` | PWA install + WhatsApp share target. |
+| `backend/prompts/` | `assess.md` and `assistant.md` — the two prompts. |
+| `backend/eval.py` | The held-out run behind every number above. |
+| `frontend/src/App.tsx` | Whole flow. Reads the PWA and native share targets. |
+| `frontend/src/voice.ts` | One speech interface over Capacitor and the Web Speech API. |
+| `frontend/android/…/SmsWatcher.java` | Local-only SMS check. No network. |
+| `deck/index.html` | Presentation. Arrow keys, `N` for notes, `F` for full screen. |
 
-Full spec: `PS1_Scam_Decision_Assistant_Implementation_File_Structure.md`
+---
+
+**MIT licensed.** Built for the Conversational Claude Impact Lab, Bhopal — PS-1.
