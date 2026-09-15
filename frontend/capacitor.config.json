@@ -1,0 +1,15 @@
+{
+  "appId": "in.digisanrakshak.app",
+  "appName": "Digi संरक्षक AI",
+  "webDir": "dist",
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "StatusBar": {
+      "style": "LIGHT",
+      "backgroundColor": "#ffffff"
+    }
+  },
+  "backgroundColor": "#f4f7fb"
+}

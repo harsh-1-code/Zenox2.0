@@ -13,23 +13,27 @@ export default function ActionPlan({ v, lang }: { v: Verdict; lang: Lang }) {
   }
 
   return (
-    <section className="card actions">
+    <section className="card reveal actions">
+      <h2 className="section-h">{L.whatNow}</h2>
       {ORDER.map((kind) => {
         const items = v.actions.filter((a) => a.kind === kind)
         if (!items.length) return null
         return (
-          <div key={kind} className={`group ${kind}`}>
-            <h3>{label[kind]}</h3>
-            <ol>
-              {items.map((a, i) => (
-                <li key={i}>
+          <div key={kind} className="group">
+            <h3 className={`group-h ${kind}`}>{label[kind]}</h3>
+            {items.map((a, i) => (
+              <div key={i} className={`step ${kind}`}>
+                <span className="step-n">{String(i + 1).padStart(2, '0')}</span>
+                <span className="step-t">
                   {a.text}
                   {a.deadline_minutes && (
-                    <span className="deadline">within {a.deadline_minutes} min</span>
+                    <span className="deadline">
+                      {L.within} {a.deadline_minutes} {L.min}
+                    </span>
                   )}
-                </li>
-              ))}
-            </ol>
+                </span>
+              </div>
+            ))}
           </div>
         )
       })}

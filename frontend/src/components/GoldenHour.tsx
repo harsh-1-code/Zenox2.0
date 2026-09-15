@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { t } from '../i18n'
 import type { Lang } from '../types'
+import { Phone } from './Icons'
 
 const WINDOW_SEC = 60 * 60
 
+/** Emergency assistance, kept calm: a countdown and two real routes, no flashing. */
 export default function GoldenHour({ lang }: { lang: Lang }) {
   const [left, setLeft] = useState(WINDOW_SEC)
   const L = t(lang)
@@ -17,20 +19,27 @@ export default function GoldenHour({ lang }: { lang: Lang }) {
   const ss = String(left % 60).padStart(2, '0')
 
   return (
-    <section className="card golden">
-      <div>
-        <div className="golden-label">{L.goldenHour}</div>
-        <div className="clock">
+    <section className="card reveal emergency">
+      <h3>{L.emergencyTitle}</h3>
+      <p>{L.emergencySub}</p>
+
+      <div className="clock-wrap">
+        <span className="clock" role="timer" aria-live="off">
           {mm}:{ss}
-        </div>
-        <p className="note">
-          A transfer reported quickly can sometimes be held. The clock starts from the
-          transaction, not from now - report immediately.
-        </p>
+        </span>
+        <span className="clock-label">{L.goldenHour}</span>
       </div>
-      <a className="call" href="tel:1930">
-        Call 1930
-      </a>
+
+      <div className="emergency-actions">
+        <a className="call-1930" href="tel:1930">
+          <Phone size={18} />
+          {L.call1930}
+        </a>
+        <a className="ncrp" href="https://cybercrime.gov.in/" target="_blank" rel="noreferrer">
+          {L.reportOnline}
+        </a>
+      </div>
+      <p className="note">{L.goldenNote}</p>
     </section>
   )
 }

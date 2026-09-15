@@ -1,7 +1,11 @@
 import type { HelpdeskResult, Lang, LendingResult, Verdict } from './types'
 
-async function post<T>(url: string, body: unknown): Promise<T> {
-  const r = await fetch(url, {
+// Empty in the browser (Vite proxies /api). Set to an absolute https origin for the
+// Android build, which has no proxy in front of it.
+const BASE = import.meta.env.VITE_API_BASE ?? ''
+
+async function post<T>(path: string, body: unknown): Promise<T> {
+  const r = await fetch(BASE + path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -30,4 +34,4 @@ export const checkLendingApp = (app_name: string) =>
   post<LendingResult>('/api/lending-app/check', { app_name })
 
 export const deleteSession = (id: string) =>
-  fetch(`/api/session/${id}`, { method: 'DELETE' }).then((r) => r.json())
+  fetch(`${BASE}/api/session/${id}`, { method: 'DELETE' }).then((r) => r.json())

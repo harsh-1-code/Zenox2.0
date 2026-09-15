@@ -6,3 +6,6 @@ node_modules/
 dist/
 .venv/
 .DS_Store
+frontend/public/*.apk
+frontend/android/
+frontend/dist/

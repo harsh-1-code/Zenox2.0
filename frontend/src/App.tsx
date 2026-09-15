@@ -4,6 +4,7 @@ import ActionPlan from './components/ActionPlan'
 import Evidence from './components/Evidence'
 import GoldenHour from './components/GoldenHour'
 import HelpDesk from './components/HelpDesk'
+import { Lock, Search, Shield, ShieldCheck } from './components/Icons'
 import Intake from './components/Intake'
 import LendingCheck from './components/LendingCheck'
 import Question from './components/Question'
@@ -13,17 +14,29 @@ import type { Lang, Verdict } from './types'
 
 type Payload = { input_type: string; text?: string; image_b64?: string; app_name?: string }
 
+const TRUST_ICONS = [ShieldCheck, Lock, Shield]
+const TRUST_TONES = ['safe', 'sky', 'sky'] as const
+
 export default function App() {
-  const [lang, setLang] = useState<Lang>('en')
+  const [lang, setLang] = useState<Lang>('hi')
   const [verdict, setVerdict] = useState<Verdict | null>(null)
   const [last, setLast] = useState<Payload | null>(null)
   const [busy, setBusy] = useState(false)
   const [researching, setResearching] = useState(false)
   const [err, setErr] = useState<string | null>(null)
   const [cleared, setCleared] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
+  const [installer, setInstaller] = useState<any>(null)
+
   const L = t(lang)
   const shared = useRef(false)
-  const [installer, setInstaller] = useState<any>(null)
+  const lastShare = useRef<number | null>(null)
+  const verdictRef = useRef<HTMLDivElement | null>(null)
+
+  function showToast(m: string) {
+    setToast(m)
+    setTimeout(() => setToast(null), 3200)
+  }
 
   useEffect(() => {
     const onPrompt = (e: Event) => {
@@ -35,16 +48,33 @@ export default function App() {
     return () => window.removeEventListener('beforeinstallprompt', onPrompt)
   }, [])
 
-  // PWA share target: WhatsApp/SMS "Share -> Scam Check" lands here as ?text=...
-  // Assess it straight away - the person shared it because they want an answer now.
+  // Two ways a message reaches us without being typed:
+  //   PWA - browser share target lands as ?text=...
+  //   APK - MainActivity sets window.__shared and fires 'digi-shared'
+  // Either way we assess straight away; it was shared because an answer is wanted now.
   useEffect(() => {
-    if (shared.current) return
-    shared.current = true
-    const q = new URLSearchParams(window.location.search)
-    const text = [q.get('title'), q.get('text'), q.get('url')].filter(Boolean).join('\n').trim()
-    if (!text) return
-    window.history.replaceState({}, '', window.location.pathname)
-    onSubmit({ input_type: 'text', text })
+    const takeNative = () => {
+      const p = (window as any).__shared
+      if (!p) return
+      if (p.id && p.id === lastShare.current) return // MainActivity fires twice on purpose
+      lastShare.current = p.id
+      delete (window as any).__shared
+      if (p.image) onSubmit({ input_type: 'image', image_b64: p.image, text: p.text || undefined })
+      else if (p.text) onSubmit({ input_type: 'text', text: p.text })
+    }
+    window.addEventListener('digi-shared', takeNative)
+    takeNative()
+
+    if (!shared.current) {
+      shared.current = true
+      const q = new URLSearchParams(window.location.search)
+      const text = [q.get('title'), q.get('text'), q.get('url')].filter(Boolean).join('\n').trim()
+      if (text) {
+        window.history.replaceState({}, '', window.location.pathname)
+        onSubmit({ input_type: 'text', text })
+      }
+    }
+    return () => window.removeEventListener('digi-shared', takeNative)
   }, [])
 
   async function run(fn: () => Promise<Verdict>, flag = setBusy) {
@@ -53,6 +83,10 @@ export default function App() {
     setCleared(false)
     try {
       setVerdict(await fn())
+      // The person is mid-panic; put the answer on screen without making them scroll.
+      requestAnimationFrame(() =>
+        verdictRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+      )
     } catch (e) {
       setErr(String(e))
     } finally {
@@ -72,8 +106,7 @@ export default function App() {
       setResearching,
     )
 
-  const onAnswer = (answer: string) =>
-    run(() => api.investigate(verdict!.session_id, answer, lang))
+  const onAnswer = (answer: string) => run(() => api.investigate(verdict!.session_id, answer, lang))
 
   async function reset() {
     if (verdict) await api.deleteSession(verdict.session_id)
@@ -84,14 +117,17 @@ export default function App() {
 
   return (
     <div className="page">
-      <header>
-        <div>
-          <h1>
-            {L.title} <span className="tagline">{L.tagline}</span>
-          </h1>
-          <p className="sub">{L.subtitle}</p>
+      <div className="topbar">
+        <div className="brand">
+          <span className="brand-mark" style={{ color: '#fff' }}>
+            <Shield size={20} />
+          </span>
+          <div>
+            <div className="brand-name">{L.brand}</div>
+            <div className="brand-sub">{L.brandSub}</div>
+          </div>
         </div>
-        <div className="head-right">
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {installer && (
             <button
               className="install"
@@ -104,24 +140,61 @@ export default function App() {
               {L.install}
             </button>
           )}
-          <button className="ghost" onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}>
-            {lang === 'en' ? 'हिन्दी' : 'English'}
-          </button>
-          {verdict && (
-            <button className="ghost" onClick={reset}>
-              {L.reset}
+          <div className="lang-switch" role="group" aria-label="Language">
+            <button className={lang === 'hi' ? 'on' : ''} onClick={() => setLang('hi')}>
+              हिन्दी
             </button>
-          )}
+            <button className={lang === 'en' ? 'on' : ''} onClick={() => setLang('en')}>
+              English
+            </button>
+          </div>
         </div>
-      </header>
+      </div>
 
-      <Intake lang={lang} busy={busy} onSubmit={onSubmit} />
+      <div className="private-badge">
+        <Lock size={14} />
+        <div>
+          {L.privateTitle} · <span>{L.privateSub}</span>
+        </div>
+      </div>
+
+      {!verdict && (
+        <div className="hero">
+          <h1>{L.heroTitle}</h1>
+          <p>{L.heroSub}</p>
+          <div className="trust-row">
+            {L.trust.map(([title, sub], i) => {
+              const Ico = TRUST_ICONS[i]
+              const tone = TRUST_TONES[i]
+              return (
+                <div className="trust-chip" key={title}>
+                  <span
+                    className="trust-ico"
+                    style={{
+                      background: tone === 'safe' ? 'var(--safe-tint)' : 'var(--sky-tint)',
+                      color: tone === 'safe' ? 'var(--safe)' : 'var(--sky)',
+                    }}
+                  >
+                    <Ico size={14} />
+                  </span>
+                  <div>
+                    <b>{title}</b>
+                    <i>{sub}</i>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      <Intake lang={lang} busy={busy} onSubmit={onSubmit} compact={!!verdict} onToast={showToast} />
 
       {cleared && <p className="cleared">{L.cleared}</p>}
       {err && <p className="err">{err}</p>}
 
       {verdict && (
-        <>
+        <div ref={verdictRef} data-scroll-anchor>
           <VerdictView v={verdict} lang={lang} />
 
           {last && (
@@ -130,28 +203,37 @@ export default function App() {
                 <span className="done">{L.researched}</span>
               ) : (
                 <button className="ghost" disabled={researching} onClick={onResearch}>
-                  {researching ? L.researching : L.research}
+                  {researching ? <span className="spin" style={{ borderTopColor: 'var(--sky)' }} /> : <Search size={15} />}
+                  <span style={{ marginLeft: 7 }}>{researching ? L.researching : L.research}</span>
                 </button>
               )}
             </div>
           )}
 
           {verdict.needs_investigation && verdict.next_question && (
-            <Question question={verdict.next_question} busy={busy} onAnswer={onAnswer} />
+            <Question question={verdict.next_question} busy={busy} lang={lang} onAnswer={onAnswer} />
           )}
           {verdict.user_state === 'money_sent' && <GoldenHour lang={lang} />}
           <ActionPlan v={verdict} lang={lang} />
           <Evidence v={verdict} lang={lang} />
           <HelpDesk v={verdict} lang={lang} />
-        </>
+          <div className="research-bar">
+            <button className="ghost" onClick={reset}>
+              {L.reset}
+            </button>
+          </div>
+        </div>
       )}
 
-      <LendingCheck lang={lang} />
+      {!verdict && <LendingCheck lang={lang} />}
 
-      <footer>
-        Advisory only. Nothing you enter is stored beyond this session. This tool never asks
-        for an OTP, PIN or password, and never reports on your behalf.
-      </footer>
+      <footer>{L.footer}</footer>
+
+      {toast && (
+        <div className="toast" role="status">
+          {toast}
+        </div>
+      )}
     </div>
   )
 }

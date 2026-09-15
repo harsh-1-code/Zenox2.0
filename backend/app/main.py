@@ -2,9 +2,10 @@ import logging
 import time
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import helpdesk, lending, pipeline, session
+from . import config, helpdesk, lending, pipeline, session
 from .schemas import (
     AnalyzeRequest,
     HelpdeskRequest,
@@ -66,6 +67,24 @@ def delete_session(session_id: str) -> dict:
     if not session.delete(session_id):
         raise HTTPException(404, "no such session")
     return {"deleted": True, "sessions_remaining": session.count()}
+
+
+# Demo convenience: hand out the built APK without putting a 4 MB binary inside the
+# web bundle (which would then ship inside the next APK).
+_APK = (
+    config.BASE.parent
+    / "frontend/android/app/build/outputs/apk/debug/app-debug.apk"
+)
+
+
+@app.get("/api/download/apk")
+def download_apk() -> FileResponse:
+    if not _APK.exists():
+        raise HTTPException(404, "APK not built yet")
+    return FileResponse(
+        _APK, media_type="application/vnd.android.package-archive",
+        filename="digi-sanrakshak.apk",
+    )
 
 
 @app.get("/api/health")
