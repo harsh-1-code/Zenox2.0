@@ -1,4 +1,4 @@
-import type { HelpdeskResult, Lang, LendingResult, Verdict } from './types'
+import type { AssistantReply, HelpdeskResult, Lang, LendingResult, Verdict } from './types'
 
 // Empty in the browser (Vite proxies /api). Set to an absolute https origin for the
 // Android build, which has no proxy in front of it.
@@ -26,6 +26,13 @@ export const analyze = (p: {
 
 export const investigate = (session_id: string, answer: string, lang: Lang) =>
   post<Verdict>('/api/investigate', { session_id, answer, lang })
+
+export const assistant = (
+  message: string,
+  lang: Lang,
+  session_id: string | undefined,
+  history: { role: string; text: string }[],
+) => post<AssistantReply>('/api/assistant', { message, lang, session_id, history })
 
 export const helpdesk = (verdict: Verdict) =>
   post<HelpdeskResult>('/api/helpdesk', { verdict })

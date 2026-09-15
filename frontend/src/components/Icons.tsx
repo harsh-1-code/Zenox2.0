@@ -66,3 +66,11 @@ export const Clock = s(
   </>,
 )
 export const Sparkle = s(<path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8" />)
+export const Mic = s(
+  <>
+    <rect x="9" y="2" width="6" height="12" rx="3" />
+    <path d="M5 11a7 7 0 0 0 14 0M12 18v4" />
+  </>,
+)
+export const Stop = s(<rect x="6" y="6" width="12" height="12" rx="2" />)
+export const X = s(<path d="M18 6 6 18M6 6l12 12" />)

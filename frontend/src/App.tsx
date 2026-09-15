@@ -9,8 +9,9 @@ import Intake from './components/Intake'
 import LendingCheck from './components/LendingCheck'
 import Question from './components/Question'
 import VerdictView from './components/Verdict'
+import VoiceAgent from './components/VoiceAgent'
 import { t } from './i18n'
-import type { Lang, Verdict } from './types'
+import type { AssistantAction, Lang, Verdict } from './types'
 
 type Payload = { input_type: string; text?: string; image_b64?: string; app_name?: string }
 
@@ -27,6 +28,9 @@ export default function App() {
   const [cleared, setCleared] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [installer, setInstaller] = useState<any>(null)
+  const [requestedMode, setRequestedMode] = useState<{ mode: any; n: number } | undefined>()
+  const emergencyRef = useRef<HTMLDivElement | null>(null)
+  const nonce = useRef(0)
 
   const L = t(lang)
   const shared = useRef(false)
@@ -111,6 +115,22 @@ export default function App() {
 
   const onAnswer = (answer: string) => run(() => api.investigate(verdict!.session_id, answer, lang))
 
+  function onAssistantAction(a: AssistantAction, text?: string | null) {
+    const card: Record<string, string> = {
+      open_message: 'text',
+      open_screenshot: 'image',
+      open_call: 'call',
+      open_app: 'app',
+    }
+    if (a === 'run_check' && text) return onSubmit({ input_type: 'text', text })
+    if (a === 'open_emergency')
+      return emergencyRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    if (card[a]) {
+      setRequestedMode({ mode: card[a], n: ++nonce.current })
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
   async function reset() {
     if (verdict) await api.deleteSession(verdict.session_id)
     setVerdict(null)
@@ -189,7 +209,14 @@ export default function App() {
         </div>
       )}
 
-      <Intake lang={lang} busy={busy} onSubmit={onSubmit} compact={!!verdict} onToast={showToast} />
+      <Intake
+        lang={lang}
+        busy={busy}
+        onSubmit={onSubmit}
+        compact={!!verdict}
+        requestedMode={requestedMode}
+        onToast={showToast}
+      />
 
       {cleared && <p className="cleared">{L.cleared}</p>}
       {err && <p className="err">{err}</p>}
@@ -214,7 +241,9 @@ export default function App() {
           {verdict.needs_investigation && verdict.next_question && (
             <Question question={verdict.next_question} busy={busy} lang={lang} onAnswer={onAnswer} />
           )}
-          {verdict.user_state === 'money_sent' && <GoldenHour lang={lang} />}
+          <div ref={emergencyRef} data-scroll-anchor>
+            {verdict.user_state === 'money_sent' && <GoldenHour lang={lang} />}
+          </div>
           <ActionPlan v={verdict} lang={lang} />
           <Evidence v={verdict} lang={lang} />
           <HelpDesk v={verdict} lang={lang} />
@@ -229,6 +258,8 @@ export default function App() {
       {!verdict && <LendingCheck lang={lang} />}
 
       <footer>{L.footer}</footer>
+
+      <VoiceAgent lang={lang} sessionId={verdict?.session_id} onAction={onAssistantAction} />
 
       {toast && (
         <div className="toast" role="status">

@@ -5,9 +5,11 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import config, helpdesk, lending, pipeline, session
+from . import assistant, config, helpdesk, lending, pipeline, session
 from .schemas import (
     AnalyzeRequest,
+    AssistantReply,
+    AssistantRequest,
     HelpdeskRequest,
     InvestigateRequest,
     LendingRequest,
@@ -42,6 +44,15 @@ def analyze(req: AnalyzeRequest) -> Verdict:
 @app.post("/api/investigate", response_model=Verdict)
 def investigate(req: InvestigateRequest) -> Verdict:
     return pipeline.reassess(req.session_id, req.answer, req.lang, req.deep)
+
+
+@app.post("/api/assistant", response_model=AssistantReply)
+def assistant_reply(req: AssistantRequest) -> AssistantReply:
+    """In-app voice guide. Answers are spoken, so they are short by construction."""
+    t0 = time.time()
+    r = assistant.reply(req.message, req.lang, req.session_id, req.history)
+    log.info("assistant action=%s ms=%d", r.action, int((time.time() - t0) * 1000))
+    return r
 
 
 @app.post("/api/helpdesk", response_model=None)

@@ -70,3 +70,18 @@ export interface HelpdeskResult {
     reminder: string
   }
 }
+
+export type AssistantAction =
+  | 'none'
+  | 'open_message'
+  | 'open_screenshot'
+  | 'open_call'
+  | 'open_app'
+  | 'open_emergency'
+  | 'run_check'
+
+export interface AssistantReply {
+  say: string
+  action: AssistantAction
+  check_text: string | null
+}

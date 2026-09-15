@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { t } from '../i18n'
 import type { Lang } from '../types'
 import { Check, Grid, Image, Message, Phone } from './Icons'
@@ -32,11 +32,13 @@ export default function Intake({
   busy,
   onSubmit,
   compact = false,
+  requestedMode,
   onToast,
 }: {
   lang: Lang
   busy: boolean
   compact?: boolean
+  requestedMode?: { mode: Mode; n: number }
   onToast: (m: string) => void
   onSubmit: (p: { input_type: string; text?: string; image_b64?: string; app_name?: string }) => void
 }) {
@@ -47,6 +49,13 @@ export default function Intake({
   const [open, setOpen] = useState(false)
   const L = t(lang)
   const collapsed = compact && !open
+
+  // The voice guide can say "open the call card" - honour it and expand if collapsed.
+  useEffect(() => {
+    if (!requestedMode) return
+    setMode(requestedMode.mode)
+    setOpen(true)
+  }, [requestedMode?.n])
 
   function onFile(f: File) {
     setFileName(f.name)

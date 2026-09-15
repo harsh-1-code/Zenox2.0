@@ -74,6 +74,22 @@ class InvestigateRequest(BaseModel):
     deep: bool = False
 
 
+class AssistantRequest(BaseModel):
+    message: str
+    lang: Lang = "en"
+    session_id: Optional[str] = None
+    history: list[dict] = []
+
+
+class AssistantReply(BaseModel):
+    say: str
+    action: Literal[
+        "none", "open_message", "open_screenshot", "open_call",
+        "open_app", "open_emergency", "run_check",
+    ] = "none"
+    check_text: Optional[str] = None
+
+
 class HelpdeskRequest(BaseModel):
     verdict: Verdict
 
